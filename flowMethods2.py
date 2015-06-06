@@ -111,9 +111,9 @@ class Level(object):
         :return:
         """
         options = self.move_options()
-        for flow, option in options:
-            if len(option) == 1:
-                return [[flow, option]]
+        #for flow, option in options:
+            #if len(option) == 1:
+            #    return [[flow, option]]
         #      if two flow ends are against the edge of the map, with none blocking
             # fill in the spots between
             # How do I get it to place all these moves? do i need to bypass add_dot
