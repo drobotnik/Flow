@@ -1,5 +1,5 @@
 from flowlevels import *
-
+import copy
 
 def get_colours_and_nodes(lvl):
     """
@@ -67,7 +67,11 @@ class Flow(object):
         """
         returns True if Flow is complete
         Does this by testing if end of flow path is next to self.finish"""
-        return 1 == sum([abs(i - j) for i, j in zip(self.path[-1], self.pair.path[-1])])
+        done = 1 == sum([abs(i - j) for i, j in zip(self.path[-1], self.pair.path[-1])])
+        if done:
+            #print(self.colour, ': Complete!')
+            pass
+        return done
 
     def blocked(self, lvl):
         """
@@ -111,9 +115,13 @@ class Level(object):
         :return:
         """
         options = self.move_options()
-        #for flow, option in options:
-            #if len(option) == 1:
-            #    return [[flow, option]]
+        options = sorted(options, key=lambda x: len(x[1]))
+
+        for flow, option in options:
+            if len(option) == 1:
+                return [[flow, option]]
+                pass
+
         #      if two flow ends are against the edge of the map, with none blocking
             # fill in the spots between
             # How do I get it to place all these moves? do i need to bypass add_dot
@@ -131,7 +139,6 @@ class Level(object):
         #l3x1 should not be looping since n(0,0) is blocked
         if not self.blocked():
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
-            flow_options = sorted(flow_options, key=lambda x: len(x[1]))
             return flow_options
         return []
 
@@ -141,6 +148,19 @@ class Level(object):
         return flows_done and map_full
 
 
-####
-
-test = Level(l31)
+def solve(level, recursion_level):
+    options = level.make_choice()
+    if level.complete():
+        return level.make_array()
+    elif options:
+        for flow, moves in options:
+            print(flow.colour, moves)
+        for flow, moves in options:
+            for move in moves:
+                print()
+                print(flow.colour, move, recursion_level)
+                flow.add_dot(move)
+                print(level, '\n')
+                possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
+                if type(possible_solution) == list:
+                    return possible_solution
