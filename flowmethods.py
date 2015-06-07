@@ -79,7 +79,8 @@ class Flow(object):
         # l3x2 should break immediately because f1 is blocked in (0, 0)
         blocked = not self.find_empties(lvl) and not self.complete()
         if blocked:
-            print(self.colour, ' is blocked!')
+            pass
+            #print(self.colour, ' is blocked!')
         return blocked
 
 
@@ -111,7 +112,8 @@ class Level(object):
         """
         blocked = any(f.blocked(self) for f in self.flow_list)
         if blocked:
-            print('Level has blockage')
+            pass
+            #print('Level has blockage')
         return blocked
 
     def rank_options(self):
@@ -153,9 +155,10 @@ class Level(object):
 def make_move(i, options, flow, move):
     if i > 0:
         last_move = options[i - 1][0]
-        print('Deleting flow {} from {}'.format(last_move.colour, last_move.path.pop()))
+        undo = last_move.path.pop()
+        #print('Deleting flow {} from {}'.format(last_move.colour, undo))
     # if made a move, delete last move
-    print('Adding flow {} at {}'.format(flow.colour, move))
+    #print('Adding flow {} at {}'.format(flow.colour, move))
     flow.add_dot(move)  # record last move
 
 
@@ -169,10 +172,10 @@ def solve(level, recursion_level):
     if level.complete():
         return level.make_array()
     elif options:
-        print_all_options(options)
+        #print_all_options(options)
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            print(level, '\n')
+            #print(level, '\n')
             possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
             if type(possible_solution) == list:
                 return possible_solution
