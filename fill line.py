@@ -176,8 +176,8 @@ def solve(level, recursion_level):
     #Actual code below
     if level.complete():
         return level.make_array()
-    elif level.make_choice():
-        for flow, moves in level.make_choice():
+    elif level.rank_options():
+        for flow, moves in level.rank_options():
             for move in moves:
                 flow.add_dot(move)
                 possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
