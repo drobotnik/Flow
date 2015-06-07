@@ -116,7 +116,7 @@ class Level(object):
 
     def make_choice(self):
         """
-        Takes move_options to give False, 1 or more options.
+        Takes make_options to give False, 1 or more options.
         Important to return ALL options unless
         :return:
         """
@@ -209,5 +209,5 @@ test = Level(l42)
 print(solve(test, 0))
 
 #
-# for flow, moves in test.move_options():
+# for flow, moves in test.make_options():
 #     for move

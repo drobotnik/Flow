@@ -68,9 +68,9 @@ class Flow(object):
         """
         returns True if Flow is complete
         Does this by testing if end of flow path is next to self.finish"""
-        done = 1 == sum([abs(i - j) for i, j in zip(self.path[-1], self.pair.path[-1])])
+        return measure_distance(self.path[-1], self.pair.path[-1]) == 1
         #print('Flow: {} done!'.format(self.colour))
-        return done
+
 
     def blocked(self, lvl):
         """
@@ -118,11 +118,11 @@ class Level(object):
 
     def rank_options(self):
         """
-        Takes move_options to give False, 1 or more options.
+        Takes make_options to give False, 1 or more options.
         Important to return ALL options unless
         :return:
         """
-        options = self.move_options()
+        options = self.make_options()
         options = sorted(options, key=lambda x: len(x[1]))
 
         for flow, option in options:
@@ -133,9 +133,10 @@ class Level(object):
         for flow, option in options:
             for move in option:
                 out += [[flow, move]]
+        out = sorted(out, key=lambda x: measure_distance(x[0].pair.path[-1], x[1]))  # Ranks options by how close they take flow to finidh
         return out
 
-    def move_options(self):
+    def make_options(self):
         """Only enters if no nodes are blocked and none have 1 option only.
         ie - multiple Flows have multiple options
         #need to remember to return all options if introducing preemptive moves
@@ -152,6 +153,10 @@ class Level(object):
         return flows_done and map_full
 
 
+def measure_distance(pos_one, pos_two):
+    return sum([abs(i - j) for i, j in zip(pos_one, pos_two)])
+
+
 def make_move(i, options, flow, move):
     if i > 0:
         last_move = options[i - 1][0]
@@ -164,7 +169,9 @@ def make_move(i, options, flow, move):
 
 def print_all_options(options):
     for n, [flow, move] in enumerate(options):
-        print(n, flow.colour, move)
+        print("distance {}, flow {}, position {}".format(measure_distance(move, flow.pair.path[-1]),
+                                                         flow.colour,
+                                                         move))
 
 
 def solve(level, recursion_level):
@@ -172,10 +179,10 @@ def solve(level, recursion_level):
     if level.complete():
         return level.make_array()
     elif options:
-        #print_all_options(options)
+        print_all_options(options)
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            #print(level, '\n')
+            print(level, '\n')
             possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
             if type(possible_solution) == list:
                 return possible_solution
