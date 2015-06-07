@@ -1,6 +1,7 @@
 from flowlevels import *
 import copy
 
+
 def get_colours_and_nodes(lvl):
     """
     Gets list of colours and node locations.
@@ -68,9 +69,7 @@ class Flow(object):
         returns True if Flow is complete
         Does this by testing if end of flow path is next to self.finish"""
         done = 1 == sum([abs(i - j) for i, j in zip(self.path[-1], self.pair.path[-1])])
-        if done:
-            #print(self.colour, ': Complete!')
-            pass
+        #print('Flow: {} done!'.format(self.colour))
         return done
 
     def blocked(self, lvl):
@@ -90,6 +89,7 @@ class Level(object):
         # maybe make it take in flow_list as a parameter so make_flows doesnt need to be called every time we init lvl
         self.flow_list = make_flows(lvl)
         self.size = len(lvl)
+        self.history = []
 
     def __str__(self):
         """
@@ -131,14 +131,6 @@ class Level(object):
         for flow, option in options:
             for move in option:
                 out += [[flow, move]]
-
-        #      if two flow ends are against the edge of the map, with none blocking
-            # fill in the spots between
-            # How do I get it to place all these moves? do i need to bypass add_dot
-            # Can I memoise the fact that I have tried this? To prevent infinite loop.
-
-            # If a loop end is next to a corner, fill that spot, return only that dot move
-
         return out
 
     def move_options(self):
@@ -158,17 +150,28 @@ class Level(object):
         return flows_done and map_full
 
 
+def make_move(i, options, flow, move):
+    if i > 0:
+        last_move = options[i - 1][0]
+        print('Deleting flow {} from {}'.format(last_move.colour, last_move.path.pop()))
+    # if made a move, delete last move
+    print('Adding flow {} at {}'.format(flow.colour, move))
+    flow.add_dot(move)  # record last move
+
+
+def print_all_options(options):
+    for n, [flow, move] in enumerate(options):
+        print(n, flow.colour, move)
+
+
 def solve(level, recursion_level):
     options = level.rank_options()
     if level.complete():
         return level.make_array()
     elif options:
+        print_all_options(options)
         for n, [flow, move] in enumerate(options):
-            print(n, flow.colour, move)
-        for flow, move in options:
-            # if made a move, delete last move
-            print(flow.colour, move, recursion_level)
-            flow.add_dot(move) # record last move
+            make_move(n, options, flow, move)
             print(level, '\n')
             possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
             if type(possible_solution) == list:
