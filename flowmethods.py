@@ -78,7 +78,10 @@ class Flow(object):
         returns True if Flow is blocked > not complete and no move options
         Does this by testing if flow is incomplete and has no options on one or both ends """
         # l3x2 should break immediately because f1 is blocked in (0, 0)
-        return not self.find_empties(lvl) and not self.complete()
+        blocked = not self.find_empties(lvl) and not self.complete()
+        if blocked:
+            print(self.colour, ' is blocked!')
+        return blocked
 
 
 class Level(object):
@@ -106,9 +109,12 @@ class Level(object):
         returns True if any of the flows in the level are blocked
         :return: bool
         """
-        return any(f.blocked(self) for f in self.flow_list)
+        blocked = any(f.blocked(self) for f in self.flow_list)
+        if blocked:
+            print('Level has blockage')
+        return blocked
 
-    def make_choice(self):
+    def rank_options(self):
         """
         Takes move_options to give False, 1 or more options.
         Important to return ALL options unless
@@ -119,8 +125,12 @@ class Level(object):
 
         for flow, option in options:
             if len(option) == 1:
-                return [[flow, option]]
-                pass
+                for move in option:
+                    return [[flow, move]]
+        out = []
+        for flow, option in options:
+            for move in option:
+                out += [[flow, move]]
 
         #      if two flow ends are against the edge of the map, with none blocking
             # fill in the spots between
@@ -129,7 +139,7 @@ class Level(object):
 
             # If a loop end is next to a corner, fill that spot, return only that dot move
 
-        return options
+        return out
 
     def move_options(self):
         """Only enters if no nodes are blocked and none have 1 option only.
@@ -149,18 +159,17 @@ class Level(object):
 
 
 def solve(level, recursion_level):
-    options = level.make_choice()
+    options = level.rank_options()
     if level.complete():
         return level.make_array()
     elif options:
-        for flow, moves in options:
-            print(flow.colour, moves)
-        for flow, moves in options:
-            for move in moves:
-                print()
-                print(flow.colour, move, recursion_level)
-                flow.add_dot(move)
-                print(level, '\n')
-                possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
-                if type(possible_solution) == list:
-                    return possible_solution
+        for n, [flow, move] in enumerate(options):
+            print(n, flow.colour, move)
+        for flow, move in options:
+            # if made a move, delete last move
+            print(flow.colour, move, recursion_level)
+            flow.add_dot(move) # record last move
+            print(level, '\n')
+            possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
+            if type(possible_solution) == list:
+                return possible_solution

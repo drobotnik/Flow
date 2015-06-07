@@ -42,10 +42,11 @@ def test(array):
 
 # # test(l31)
 #test(l3x2)
-# test(l44)
+#test(l44)
 test(l43)
 #test(l51)
 #test(l52)
+#test(l53)
 # test(l61)
 # #test(l62)  #still same bug where it fails to solve this one
 # test(l71)
