@@ -53,8 +53,6 @@ test(l43)
 # test(l72)
 # test(l91)
 
-<<<<<<< HEAD
-#master
-=======
+
 ###helloooooooo branch
->>>>>>> origin/flatten-move-options
+
