@@ -24,31 +24,34 @@ def timer():
 def test(array):
     global loops
     then = time.time()
-    print('\n***** Testing:')
     seed = Level(array)
-    print(seed, '\n')
-    solution = solve(copy.deepcopy(seed), 0)
-    loops = 'N/A'
-    outparams = (round(time.time() - then, 3), loops, seed.size)
-    outtext = '{} found in: {}, Loops: {}, Size: {}'
-    if solution:
+    print('\n*****Testing. Level size: {} Layout:'.format(seed.size))
 
-        print(outtext.format('Solution!', *outparams))
-        for row in solution:
-            print(row)
+    #print(seed, '\n')
+    solution = solve(copy.deepcopy(seed))
+    loops = 'N/A'
+    outparams = (round(time.time() - then, 3), loops)
+    outtext = '{} found in: {}, Loops: {}'
+    if solution:
+        pass
+
+        #print(outtext.format('Solution!', *outparams))
+        # for row in solution:
+        #     print(row)
     else:
         print(outtext.format('Unsolvable!', *outparams))
+        print(seed)
 
 test(l31)
 test(l3x2)
 test(l44)
 test(l43)
 test(l51)
-#test(l52)
-#test(l53)
+test(l52)
+test(l53)
 test(l61)
 test(l62)  #still same bug where it fails to solve this one
 test(l71)
-#test(l72)
+test(l72)
 test(l91)
 
