@@ -132,7 +132,7 @@ class Level(object):
         out = []
         for flow, option in options:
             for move in option:
-                out += [[flow, move]]
+                out += [[flow, move]]  # Unpack options
         out = sorted(out, key=self.score_option)
         return out
 
@@ -164,7 +164,7 @@ class Level(object):
         score = 1
         #  find empties
         # If empties == 1:
-        #   score *= 0  # This is a corner or tunnel
+        #   score *= 0  # This is a corner or tunnel <- must be filled
         # if empties == 2:
         #   score *= 0.5  # this is an edge
 
@@ -173,14 +173,8 @@ class Level(object):
         return score
 
 
-
 def measure_distance(pos_one, pos_two):
     return sum([abs(i - j) for i, j in zip(pos_one, pos_two)])
-
-
-
-
-
 
 
 def make_move(i, options, flow, move):
