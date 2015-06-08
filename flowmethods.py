@@ -108,7 +108,9 @@ class Level(object):
         :return: bool
         """
         blocked = any(f.blocked(self) for f in self.flow_list)
-        return blocked
+        # blocked if it is empty and has 0 empties and 0 flow ends
+        knot = False
+        return blocked or knot
 
     def rank_options(self):
         """
@@ -187,7 +189,7 @@ def solve(level):
     elif options:
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            #print(level, '\n')
+            print(level, '\n')
             possible = solve(copy.deepcopy(level))
             if type(possible) == list:
                 return possible
