@@ -50,14 +50,17 @@ class Flow(object):
     def link(self, pair):
         self.pair = pair
 
-    def find_empties(self, lvl):
+    def find_empties(self, lvl, position=None):
         """
         return list of tuples giving empty spaces next to flow end. False if none
         """
+        if position is None:
+            position = self.path[-1]
         if not self.complete():
-            row, col = self.path[-1]
+            row, col = position
             adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < lvl.size and not lvl.make_array()[row + adj][col]]
             adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < lvl.size and not lvl.make_array()[row][col + adj]]
+            #print('find empties:', adj_rows + adj_cols)
             return adj_rows + adj_cols
         return False
 
@@ -162,11 +165,11 @@ class Level(object):
         flow = flow_option[0]
         move = flow_option[1]
         score = 1
-        #  find empties
-        # If empties == 1:
-        #   score *= 0  # This is a corner or tunnel <- must be filled
-        # if empties == 2:
-        #   score *= 0.5  # this is an edge
+        pot_empties = len(flow.find_empties(self, move))
+        if pot_empties == 1:
+            score *= 0  # This is a corner or tunnel <- must be filled
+        if pot_empties == 2:
+            score *= 0.5  # this is an edge
 
         dist = lambda x: measure_distance(x[0].pair.path[-1], x[1])  # Ranks options by how close they take flow to finidh
         score = score * dist(flow_option)
