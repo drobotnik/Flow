@@ -133,7 +133,7 @@ class Level(object):
         for flow, option in options:
             for move in option:
                 out += [[flow, move]]
-        out = sorted(out, key=lambda x: measure_distance(x[0].pair.path[-1], x[1]))  # Ranks options by how close they take flow to finidh
+        out = sorted(out, key=self.score_option)
         return out
 
     def make_options(self):
@@ -152,19 +152,42 @@ class Level(object):
         flows_done = all(f.complete() for f in self.flow_list)
         return flows_done and map_full
 
+    def score_option(self, flow_option):
+        """
+        Takes as input a possible move and returns a score for how favourable it is
+        0 is best, 1 is worst
+        :param flow_option: [<flow>, (tup)]
+        :return: float
+        """
+        flow = flow_option[0]
+        move = flow_option[1]
+        score = 1
+        #  find empties
+        # If empties == 1:
+        #   score *= 0  # This is a corner or tunnel
+        # if empties == 2:
+        #   score *= 0.5  # this is an edge
+
+        dist = lambda x: measure_distance(x[0].pair.path[-1], x[1])  # Ranks options by how close they take flow to finidh
+        score = score * dist(flow_option)
+        return score
+
+
 
 def measure_distance(pos_one, pos_two):
     return sum([abs(i - j) for i, j in zip(pos_one, pos_two)])
 
 
+
+
+
+
+
 def make_move(i, options, flow, move):
     if i > 0:
         last_move = options[i - 1][0]
-        undo = last_move.path.pop()
-        #print('Deleting flow {} from {}'.format(last_move.colour, undo))
-    # if made a move, delete last move
-    #print('Adding flow {} at {}'.format(flow.colour, move))
-    flow.add_dot(move)  # record last move
+        last_move.path.pop()
+    flow.add_dot(move)
 
 
 def print_all_options(options):
@@ -179,10 +202,10 @@ def solve(level, recursion_level):
     if level.complete():
         return level.make_array()
     elif options:
-        print_all_options(options)
+        #print_all_options(options)
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            print(level, '\n')
+            #print(level, '\n')
             possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
             if type(possible_solution) == list:
                 return possible_solution
