@@ -102,15 +102,43 @@ class Level(object):
                 out[row][col] = flow.colour
         return out
 
+    def knot_checker(self):
+        filled = []
+        for flow in self.flow_list:
+            filled += flow.path[:-1]
+        unfilled = []
+        for r in range(self.size):
+            for c in range(self.size):
+                if (r, c) not in filled:
+                    unfilled += [(r, c)]
+        for empty in unfilled:
+            adjacent = self.find_adjactent(empty)
+            if all(adj in filled for adj in adjacent):
+                input('Knot! {}'.format(empty))
+                return True
+        return False
+
+
+
+    def find_adjactent(self, position):
+        row, col = position
+        adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
+        adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
+        return adj_rows + adj_cols
+
+
+
     def blocked(self):
         """
         returns True if any of the flows in the level are blocked
         :return: bool
         """
-        blocked = any(f.blocked(self) for f in self.flow_list)
+        dead_end = any(f.blocked(self) for f in self.flow_list)
         # blocked if it is empty and has 0 empties and 0 flow ends
-        knot = False
-        return blocked or knot
+        knot = self.knot_checker()
+        print('DE', dead_end, 'KN', knot, knot or dead_end)
+
+        return knot or dead_end
 
     def rank_options(self):
         """
@@ -167,7 +195,7 @@ class Level(object):
             score *= 0.1
 
         dist = lambda f, m: measure_distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
-        score = score * (dist(flow, move)/10)
+        score *= dist(flow, move) / 10  # reduces weighting of distance
         return score
 
 
@@ -179,6 +207,7 @@ def make_move(branch, options, flow, move):
     if branch > 0:
         last_move = options[branch - 1][0]
         last_move.path.pop()
+    print('placing', flow.colour, move)
     flow.add_dot(move)
 
 
@@ -193,4 +222,7 @@ def solve(level):
             possible = solve(copy.deepcopy(level))
             if type(possible) == list:
                 return possible
+
+
+
 
