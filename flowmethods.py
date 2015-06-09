@@ -167,7 +167,7 @@ class Level(object):
             score *= 0.1
 
         dist = lambda f, m: measure_distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
-        score = score * dist(flow, move)
+        score = score * (dist(flow, move)/10)
         return score
 
 

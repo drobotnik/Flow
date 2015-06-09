@@ -50,6 +50,6 @@ def test(array):
 # test(l62)
 # test(l71)
 # #test(l72) # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
-# test(l91)
-test(l14)
+test(l91)
+#test(l14)
 
