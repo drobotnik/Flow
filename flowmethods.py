@@ -1,4 +1,3 @@
-from flowlevels import *
 import copy
 
 
@@ -50,12 +49,14 @@ class Flow(object):
     def link(self, pair):
         self.pair = pair
 
-    def find_empties(self, lvl):
+    def find_empties(self, lvl, position=None):
         """
         return list of tuples giving empty spaces next to flow end. False if none
         """
+        if position is None:
+            position = self.path[-1]
         if not self.complete():
-            row, col = self.path[-1]
+            row, col = position
             adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < lvl.size and not lvl.make_array()[row + adj][col]]
             adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < lvl.size and not lvl.make_array()[row][col + adj]]
             return adj_rows + adj_cols
@@ -69,7 +70,6 @@ class Flow(object):
         returns True if Flow is complete
         Does this by testing if end of flow path is next to self.finish"""
         return measure_distance(self.path[-1], self.pair.path[-1]) == 1
-        #print('Flow: {} done!'.format(self.colour))
 
 
     def blocked(self, lvl):
@@ -78,9 +78,6 @@ class Flow(object):
         Does this by testing if flow is incomplete and has no options on one or both ends """
         # l3x2 should break immediately because f1 is blocked in (0, 0)
         blocked = not self.find_empties(lvl) and not self.complete()
-        if blocked:
-            pass
-            #print(self.colour, ' is blocked!')
         return blocked
 
 
@@ -111,10 +108,9 @@ class Level(object):
         :return: bool
         """
         blocked = any(f.blocked(self) for f in self.flow_list)
-        if blocked:
-            pass
-            #print('Level has blockage')
-        return blocked
+        # blocked if it is empty and has 0 empties and 0 flow ends
+        knot = False
+        return blocked or knot
 
     def rank_options(self):
         """
@@ -132,8 +128,8 @@ class Level(object):
         out = []
         for flow, option in options:
             for move in option:
-                out += [[flow, move]]
-        out = sorted(out, key=lambda x: measure_distance(x[0].pair.path[-1], x[1]))  # Ranks options by how close they take flow to finidh
+                out += [[flow, move]]  # Unpack options
+        out = sorted(out, key=self.score_option)
         return out
 
     def make_options(self):
@@ -152,37 +148,49 @@ class Level(object):
         flows_done = all(f.complete() for f in self.flow_list)
         return flows_done and map_full
 
+    def score_option(self, flow_option):
+        """
+        Takes as input a possible move and returns a score for how favourable it is
+        0 is best
+        :param flow_option: [<flow>, (tup)]
+        :return: float
+        """
+        flow, move = flow_option
+        score = 1
+        pot_empties = len(flow.find_empties(self, move))
+        pair_empties = len(flow.pair.find_empties(self, flow.pair.path[-1]))
+        if pot_empties == 1:
+            score *= 0.1  # This is a corner or tunnel <- must be filled. Problem is, two ends may make a 'corner'
+        if pot_empties == 2:
+            score *= 0.5  # this is an edge
+        if pot_empties < 3 and pair_empties < 3:  # prioritise flows where both ends are against an edge or corner
+            score *= 0.1
+
+        dist = lambda f, m: measure_distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
+        score = score * dist(flow, move)
+        return score
+
 
 def measure_distance(pos_one, pos_two):
     return sum([abs(i - j) for i, j in zip(pos_one, pos_two)])
 
 
-def make_move(i, options, flow, move):
-    if i > 0:
-        last_move = options[i - 1][0]
-        undo = last_move.path.pop()
-        #print('Deleting flow {} from {}'.format(last_move.colour, undo))
-    # if made a move, delete last move
-    #print('Adding flow {} at {}'.format(flow.colour, move))
-    flow.add_dot(move)  # record last move
+def make_move(branch, options, flow, move):
+    if branch > 0:
+        last_move = options[branch - 1][0]
+        last_move.path.pop()
+    flow.add_dot(move)
 
 
-def print_all_options(options):
-    for n, [flow, move] in enumerate(options):
-        print("distance {}, flow {}, position {}".format(measure_distance(move, flow.pair.path[-1]),
-                                                         flow.colour,
-                                                         move))
-
-
-def solve(level, recursion_level):
+def solve(level):
     options = level.rank_options()
     if level.complete():
         return level.make_array()
     elif options:
-        print_all_options(options)
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
             print(level, '\n')
-            possible_solution = solve(copy.deepcopy(level), recursion_level + 1)
-            if type(possible_solution) == list:
-                return possible_solution
+            possible = solve(copy.deepcopy(level))
+            if type(possible) == list:
+                return possible
+
