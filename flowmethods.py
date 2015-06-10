@@ -102,31 +102,11 @@ class Level(object):
                 out[row][col] = flow.colour
         return out
 
-    def knot_checker(self):
-        filled = []
-        for flow in self.flow_list:
-            filled += flow.path[:-1]
-        unfilled = []
-        for r in range(self.size):
-            for c in range(self.size):
-                if (r, c) not in filled:
-                    unfilled += [(r, c)]
-        for empty in unfilled:
-            adjacent = self.find_adjactent(empty)
-            if all(adj in filled for adj in adjacent):
-                input('Knot! {}'.format(empty))
-                return True
-        return False
-
-
-
-    def find_adjactent(self, position):
+    def find_adjacent(self, position):
         row, col = position
         adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
         adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
         return adj_rows + adj_cols
-
-
 
     def blocked(self):
         """
@@ -138,7 +118,28 @@ class Level(object):
         knot = self.knot_checker()
         print('DE', dead_end, 'KN', knot, knot or dead_end)
 
-        return knot or dead_end
+        return knot or False  # dead_end
+
+    def knot_checker(self):
+        filled = []
+        for flow in self.flow_list:
+            filled += flow.path[:-1]
+        unfilled = []
+        for r in range(self.size):
+            for c in range(self.size):
+                if (r, c) not in filled:
+                    unfilled += [(r, c)]
+        for empty in unfilled:
+            adjacent = self.find_adjacent(empty)
+            if all(adj in filled for adj in adjacent):
+                #input('Knot! {}'.format(empty))
+                return True
+        return False
+
+    def complete(self):
+        map_full = all(all(row) for row in self.make_array())
+        flows_done = all(f.complete() for f in self.flow_list)
+        return flows_done and map_full
 
     def rank_options(self):
         """
@@ -170,11 +171,6 @@ class Level(object):
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
             return flow_options
         return []
-
-    def complete(self):
-        map_full = all(all(row) for row in self.make_array())
-        flows_done = all(f.complete() for f in self.flow_list)
-        return flows_done and map_full
 
     def score_option(self, flow_option):
         """
