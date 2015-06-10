@@ -77,7 +77,7 @@ class Flow(object):
         returns True if Flow is blocked > not complete and no move options
         Does this by testing if flow is incomplete and has no options on one or both ends """
         # l3x2 should break immediately because f1 is blocked in (0, 0)
-        blocked = not self.find_empties(lvl) and not self.complete()
+        blocked = not(self.find_empties(lvl) or self.complete())
         return blocked
 
 
@@ -116,9 +116,8 @@ class Level(object):
         dead_end = any(f.blocked(self) for f in self.flow_list)
         # blocked if it is empty and has 0 empties and 0 flow ends
         knot = self.knot_checker()
-        print('DE', dead_end, 'KN', knot, knot or dead_end)
 
-        return knot or False  # dead_end
+        return dead_end
 
     def knot_checker(self):
         filled = []
@@ -132,7 +131,6 @@ class Level(object):
         for empty in unfilled:
             adjacent = self.find_adjacent(empty)
             if all(adj in filled for adj in adjacent):
-                #input('Knot! {}'.format(empty))
                 return True
         return False
 
@@ -140,6 +138,17 @@ class Level(object):
         map_full = all(all(row) for row in self.make_array())
         flows_done = all(f.complete() for f in self.flow_list)
         return flows_done and map_full
+
+    def make_options(self):
+        """Only enters if no nodes are blocked and none have 1 option only.
+        ie - multiple Flows have multiple options
+        #need to remember to return all options if introducing preemptive moves
+        """
+        #l3x1 should not be looping since n(0,0) is blocked
+        if not self.blocked():
+            flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
+            return flow_options
+        return []
 
     def rank_options(self):
         """
@@ -161,16 +170,6 @@ class Level(object):
         out = sorted(out, key=self.score_option)
         return out
 
-    def make_options(self):
-        """Only enters if no nodes are blocked and none have 1 option only.
-        ie - multiple Flows have multiple options
-        #need to remember to return all options if introducing preemptive moves
-        """
-        #l3x1 should not be looping since n(0,0) is blocked
-        if not self.blocked():
-            flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
-            return flow_options
-        return []
 
     def score_option(self, flow_option):
         """
@@ -192,6 +191,7 @@ class Level(object):
 
         dist = lambda f, m: measure_distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
         score *= dist(flow, move) / 10  # reduces weighting of distance
+        print('final score', round(score, 2), flow.colour, move)
         return score
 
 
@@ -214,6 +214,8 @@ def solve(level):
     elif options:
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
+            print('DE', level.blocked(), 'KN', level.knot_checker())
+
             print(level, '\n')
             possible = solve(copy.deepcopy(level))
             if type(possible) == list:

@@ -43,13 +43,15 @@ def test(array):
         print(seed)
 
 #test(l31)
-test(l43)
+#test(l43)
 #test(l44)
-# test(l43)
-# test(l61)
-# test(l62)
-# test(l71)
-# #test(l72) # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
-# test(l91)
-# #test(l14)
+#test(l61)
+#test(l62)
+#test(l71)
+#test(l72) # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
+#test(l81)
+#test(l91)
+test(l121)
+#test(l101)
+#test(l141)
 
