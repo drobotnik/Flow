@@ -26,7 +26,7 @@ def make_flows(lvl):
     makes a list of paired flows.
     feeds into Level.__init__. Could possibly be merged when it joins
     :param lvl:
-    :return:
+    :return: list of Flows [flowA, flowB, flowC...]
     """
     flow_list = []
     helper = []
@@ -43,8 +43,15 @@ class Flow(object):
 
     def __init__(self, colour, path, pair=[]):
         self.colour = colour
-        self.path = [path]
         self.pair = pair
+        if type(path) == tuple:  # These tests are to check if the flows are being created organically or for testing purposes
+            self.path = [path]
+        elif type(path) == list:
+            self.path = path
+
+    def __str__(self):
+        return "Flow: {} Path: {} - {}".format(self.colour, self.path, self.pair.path[::-1])
+
 
     def link(self, pair):
         self.pair = pair
@@ -71,7 +78,6 @@ class Flow(object):
         Does this by testing if end of flow path is next to self.finish"""
         return measure_distance(self.path[-1], self.pair.path[-1]) == 1
 
-
     def blocked(self, lvl):
         """
         returns True if Flow is blocked > not complete and no move options
@@ -83,17 +89,23 @@ class Flow(object):
 
 class Level(object):
 
-    def __init__(self, lvl):
+    def __init__(self, lvl, flows=False):
         # maybe make it take in flow_list as a parameter so make_flows doesnt need to be called every time we init lvl
-        self.flow_list = make_flows(lvl)
         self.size = len(lvl)
-        self.history = []
+        if not flows:  # create flows if done organically
+            self.flow_list = make_flows(lvl)
+        else:  # take a list of flows
+            self.flow_list = flows
 
     def __str__(self):
         """
         returns formatted level
         """
         return '\n'.join(str([(c or ' ') for c in r]) for r in self.make_array())
+
+    def inspect_flows(self):
+        for flow in self.flow_list:
+            print(flow)
 
     def make_array(self):
         out = [['' for _ in range(self.size)] for _ in range(self.size)]
@@ -170,7 +182,6 @@ class Level(object):
         out = sorted(out, key=self.score_option)
         return out
 
-
     def score_option(self, flow_option):
         """
         Takes as input a possible move and returns a score for how favourable it is
@@ -215,7 +226,6 @@ def solve(level):
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
             print('DE', level.blocked(), 'KN', level.knot_checker())
-
             print(level, '\n')
             possible = solve(copy.deepcopy(level))
             if type(possible) == list:
