@@ -9,6 +9,8 @@ def get_nodes(lvl):
     :return:[[[tup], [tup]],...]
     """
     out = []
+    print('lvl')
+    print(lvl)
     node_set = lambda x: set([c for row in x for c in row if c])
     for node in node_set(lvl):
         helper = []
@@ -36,6 +38,7 @@ def make_flows(flow_path_lists):
         a.link(b)
         b.link(a)
     return sum(out, [])
+
 
 
 class Flow(object):
@@ -89,16 +92,18 @@ class Level(object):
 
     def __init__(self, lvl, size=0):
         """
-        Takes either a level diagram (list of lists) or a list of Flow objects
+        Takes either a level diagram (list of lists) or a list of flow paths
         :param lvl: either a list of Flows or level diagram
         :param size:
         :return:
         """
-        if type(lvl[0]) == list:
+        if type(lvl[0][0]) == str:
+            print('Creating Level from diagram')
             self.flow_list = make_flows(get_nodes(lvl))
             self.size = len(lvl)
-        elif type(lvl[0]) == Flow:
-            self.flow_list = lvl
+        else:
+            print('Creating Level from flowlist')
+            self.flow_list = make_flows(lvl)
             self.size = size
 
     def __str__(self):
@@ -210,7 +215,7 @@ class Level(object):
 
         dist = lambda f, m: measure_distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
         score *= dist(flow, move) / 10  # reduces weighting of distance
-        print('final score', round(score, 2), flow.colour, move)
+        # print('final score', round(score, 2), flow.colour, move)
         return score
 
 
@@ -222,7 +227,7 @@ def make_move(branch, options, flow, move):
     if branch > 0:
         last_move = options[branch - 1][0]
         last_move.path.pop()
-    print('placing', flow.colour, move)
+    #print('placing', flow.colour, move)
     flow.add_dot(move)
 
 
@@ -233,8 +238,8 @@ def solve(level):
     elif options:
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            print('DE', level.blocked(), 'KN', level.knot_checker())
-            print(level, '\n')
+            #print('DE', level.blocked(), 'KN', level.knot_checker())
+            #print(level, '\n')
             possible = solve(copy.deepcopy(level))
             if type(possible) == list:
                 return possible
