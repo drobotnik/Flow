@@ -1,4 +1,4 @@
-import copy
+from copy import deepcopy
 
 
 def get_nodes(lvl):
@@ -9,8 +9,6 @@ def get_nodes(lvl):
     :return:[[[tup], [tup]],...]
     """
     out = []
-    print('lvl')
-    print(lvl)
     node_set = lambda x: set([c for row in x for c in row if c])
     for node in node_set(lvl):
         helper = []
@@ -38,7 +36,6 @@ def make_flows(flow_path_lists):
         a.link(b)
         b.link(a)
     return sum(out, [])
-
 
 
 class Flow(object):
@@ -98,11 +95,13 @@ class Level(object):
         :return:
         """
         if type(lvl[0][0]) == str:
-            print('Creating Level from diagram')
+            # Make Level from diagram. Size given from shape
             self.flow_list = make_flows(get_nodes(lvl))
             self.size = len(lvl)
         else:
-            print('Creating Level from flowlist')
+            # Make Level from inputted flow paths. Size needs to be explicitly stated
+            if len(lvl) == 2:
+                lvl, size = lvl
             self.flow_list = make_flows(lvl)
             self.size = size
 
@@ -115,10 +114,6 @@ class Level(object):
     def __iter__(self):
         for flow in self.flow_list:
             yield flow
-
-    def inspect_flows(self):
-        for flow in self.flow_list:
-            print(flow)
 
     def make_array(self):
         out = [['' for _ in range(self.size)] for _ in range(self.size)]
@@ -140,24 +135,7 @@ class Level(object):
         """
         dead_end = any(f.blocked(self) for f in self.flow_list)
         # blocked if it is empty and has 0 empties and 0 flow ends
-        knot = self.knot_checker()
-
         return dead_end
-
-    def knot_checker(self):
-        filled = []
-        for flow in self.flow_list:
-            filled += flow.path[:-1]
-        unfilled = []
-        for r in range(self.size):
-            for c in range(self.size):
-                if (r, c) not in filled:
-                    unfilled += [(r, c)]
-        for empty in unfilled:
-            adjacent = self.find_adjacent(empty)
-            if all(adj in filled for adj in adjacent):
-                return True
-        return False
 
     def complete(self):
         map_full = all(all(row) for row in self.make_array())
@@ -238,9 +216,9 @@ def solve(level):
     elif options:
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            #print('DE', level.blocked(), 'KN', level.knot_checker())
-            #print(level, '\n')
-            possible = solve(copy.deepcopy(level))
+            print('DE', level.blocked(), 'KN', level.knot_checker())
+            print(level, '\n')
+            possible = solve(deepcopy(level))
             if type(possible) == list:
                 return possible
 
