@@ -52,7 +52,6 @@ class Flow(object):
     def __str__(self):
         return "Flow: {} Path: {} - {}".format(self.colour, self.path, self.pair.path[::-1])
 
-
     def link(self, pair):
         self.pair = pair
 
@@ -89,13 +88,19 @@ class Flow(object):
 
 class Level(object):
 
-    def __init__(self, lvl, flows=False):
-        # maybe make it take in flow_list as a parameter so make_flows doesnt need to be called every time we init lvl
-        self.size = len(lvl)
-        if not flows:  # create flows if done organically
+    def __init__(self, lvl, size=0):
+        """
+        Takes either a level diagram (list of lists) or a list of Flow objects
+        :param lvl: either a list of Flows or level diagram
+        :param size:
+        :return:
+        """
+        if type(lvl[0]) == list:
             self.flow_list = make_flows(lvl)
-        else:  # take a list of flows
-            self.flow_list = flows
+            self.size = len(lvl)
+        elif type(lvl[0]) == Flow:
+            self.flow_list = lvl
+            self.size = size
 
     def __str__(self):
         """

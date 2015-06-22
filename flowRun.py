@@ -25,7 +25,7 @@ def test(array):
     global loops
     then = time.time()
     seed = Level(array)
-    print('\n*****Testing. Level size: {} Layout:'.format(seed.size))
+    print('\n*****Testing.    size: {} Layout:'.format(seed.size))
 
     print(seed, '\n')
     solution = solve(copy.deepcopy(seed))
@@ -43,7 +43,7 @@ def test(array):
         print(seed)
 
 #test(l31)
-#test(l42)
+#test(l42)  # Bug on this one because flows are 'finished' before map is full
 #test(l43)
 #test(l44)
 #test(l61)
