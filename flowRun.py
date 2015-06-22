@@ -44,11 +44,11 @@ def test(array):
 
 #test(l31)
 #test(l42)  # Bug on this one because flows are 'finished' before map is full
-#test(l43)
-#test(l44)
-#test(l61)
-#test(l62)
-#test(l71)
+test(l43)
+test(l44)
+test(l61)
+test(l62)
+test(l71)
 #test(l72) # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
 #test(l81)
 #test(l91)

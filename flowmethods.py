@@ -39,6 +39,25 @@ def make_flows(lvl):
     return flow_list
 
 
+def make_level(flowlist):
+    """
+    Returns a Level object based on custom inputted list of list of paths
+    eg. paths = [[[(0, 0), (0, 1)], [(3, 0), (3, 1), (3, 2)]],
+                 [[(3, 3)], [(2, 3)]]]
+    make_level(paths, 4)
+    :param flowlist: List of lists of paired Flow objects
+    :return: Level object
+    """
+    pairs = flowlist
+    out = []
+    for n, [a, b] in enumerate(pairs):
+        out += [[Flow(str(n), a), Flow(str(n), b)]]
+    for a, b in out:
+        a.link(b)
+        b.link(a)
+    return sum(out, [])
+
+
 class Flow(object):
 
     def __init__(self, colour, path, pair=[]):
@@ -107,6 +126,10 @@ class Level(object):
         returns formatted level
         """
         return '\n'.join(str([(c or ' ') for c in r]) for r in self.make_array())
+
+    def __iter__(self):
+        for flow in self.flow_list:
+            yield flow
 
     def inspect_flows(self):
         for flow in self.flow_list:

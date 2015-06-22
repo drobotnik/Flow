@@ -3,27 +3,39 @@ from flowmethods import *
 from flowRun import *
 
 
-lt41 = [['1', '1', '', ''],
+lt41 = [['', '', '', ''],
+        ['2', '2', '', ''],
         ['', '', '', ''],
-        ['', '', '', '2'],
-        ['1', '1', '1', '2']]
+        ['', '', '', '']]
+
+two_flows_blank = [[[], []],
+                   [[], []]]
+
+one_flow_blank = [[[], []]]
+
+two_flows = [[[(0, 0)], [(3, 0)]],
+             [[(0, 1)], [(0, 2)]]]
+
+one_flows = [[[(1, 0)], [(1, 1)]]]
+
+lvl = make_level(one_flows, 4)
+
+area = (lvl.size ** 2)
+flowspace = 0
+areas = []
+for flow in lvl:
+    flowspace += len(flow.path)
+print(flowspace / area)
 
 
-def custom_solve(flowlist, size):
-    """
-    Returns a Level object based on custom inputted list of list of paths
-    eg. paths = [[[(0, 0), (0, 1)], [(3, 0), (3, 1), (3, 2)]],
-                 [[(3, 3)], [(2, 3)]]]
-    custom_solve(paths, 4)
-    :param flowlist: List of lists of paired Flow objects
-    :return: Level object
-    """
-    pairs = flowlist
-    out = []
-    for n, [a, b] in enumerate(pairs):
-        out += [[Flow(str(n), a), Flow(str(n), b)]]
-    for a, b in out:
-        a.link(b)
-        b.link(a)
-    return Level(sum(out, []), size)
 
+class NegaFinder(Level):
+
+    def __init__(self, level_obj):
+        Level.__init__(self, level_obj)
+
+
+
+a = NegaFinder(lt41)
+
+print(a)
