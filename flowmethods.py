@@ -1,57 +1,37 @@
 import copy
 
 
-def get_colours_and_nodes(lvl):
+def get_nodes(lvl):
     """
-    Gets list of colours and node locations.
+    Gets list of node locations from level diagra,.
     Called once when making Flow objects
-    :param lvl: list of strings
-    :return:[[str, tup, tup],...]
+    :param lvl: list of list of strings
+    :return:[[[tup], [tup]],...]
     """
     out = []
     node_set = lambda x: set([c for row in x for c in row if c])
     for node in node_set(lvl):
-        helper = [node]
+        helper = []
         for i, r in enumerate(lvl):
             for j, c in enumerate(r):
                 if c == node:
-                    helper += [(i, j)]
+                    helper += [[(i, j)]]
         out += [helper]
     return out
 
 
-def make_flows(lvl):
+def make_flows(flow_path_lists):
     """
-    Called once when starting level.
-    makes a list of paired flows.
-    feeds into Level.__init__. Could possibly be merged when it joins
-    :param lvl:
-    :return: list of Flows [flowA, flowB, flowC...]
-    """
-    flow_list = []
-    helper = []
-    for colo, start, end in get_colours_and_nodes(lvl):
-        helper += [[Flow(colo, start), Flow(colo, end)]]
-    for x, y in helper:
-        y.link(x)
-        x.link(y)
-        flow_list += [x, y]
-    return flow_list
-
-
-def make_level(flowlist):
-    """
-    Returns a Level object based on custom inputted list of list of paths
+    Returns a list of flows based on list of list of paths
     eg. paths = [[[(0, 0), (0, 1)], [(3, 0), (3, 1), (3, 2)]],
                  [[(3, 3)], [(2, 3)]]]
     make_level(paths, 4)
-    :param flowlist: List of lists of paired Flow objects
+    :param flow_path_lists: List of lists of paired Flow objects
     :return: Level object
     """
-    pairs = flowlist
     out = []
-    for n, [a, b] in enumerate(pairs):
-        out += [[Flow(str(n), a), Flow(str(n), b)]]
+    for n, [a, b] in enumerate(flow_path_lists, 65):
+        out += [[Flow(chr(n), a), Flow(chr(n), b)]]
     for a, b in out:
         a.link(b)
         b.link(a)
@@ -115,7 +95,7 @@ class Level(object):
         :return:
         """
         if type(lvl[0]) == list:
-            self.flow_list = make_flows(lvl)
+            self.flow_list = make_flows(get_nodes(lvl))
             self.size = len(lvl)
         elif type(lvl[0]) == Flow:
             self.flow_list = lvl
