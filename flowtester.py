@@ -17,36 +17,29 @@ one_flow_blank = [[[], []]]
 
 t = Level(t2l41)
 
-print(t)
 
-filled = []
-for flow in t:
-    filled += flow.path
+def area_finder(level_obj):
+    filled = []
+    for flow in level_obj:
+        filled += flow.path
 
-empties = []
-for spot in product(range(t.size), repeat=2):
-    if spot not in filled:
-        empties += [spot]
+    empties = []
+    for spot in product(range(level_obj.size), repeat=2):
+        if spot not in filled:
+            empties += [spot]
 
-areas = []
-while empties:
-    area = [empties.pop()]
-    for spot in area:
-        # print(spot, t.find_adjacent(spot))
-        for adj in t.find_adjacent(spot):
-            if adj in empties:
-                area += [empties.pop(empties.index(adj))]
-    areas += [area]
+    areas = []
+    while empties:
+        area = [empties.pop()]
+        for spot in area:
+            for adj in level_obj.find_adjacent(spot):
+                try:
+                    area += [empties.pop(empties.index(adj))]
+                except ValueError:
+                    pass
+        areas += [area]
+    return areas
 
-print(areas)
-print(empties)
 
 
-# base = [['', '', ''],
-#         ['', '', ''],
-#         ['', '', '']]
-#
-# for r, row in enumerate(base):
-#     for c, col in enumerate(row):
-#         print((r, c))
-#
+
