@@ -207,6 +207,11 @@ class Level(object):
         return score
 
     def area_finder(self):
+        """
+        Returns the different areas
+        Note that flow ends are not included as blocking. This is to make it easier to test if the ends are in the areas
+        :return: list of tuples
+        """
         filled = []
         for flow in self:
             if flow.complete():
@@ -231,25 +236,35 @@ class Level(object):
             areas += [area]
         return areas
 
-    def connected_areas(self):
+    def all_areas_shared(self):
         """
         Return True if all Flow ends are in the same 'area' ie not impossible to be connected
         :return: bool
         """
-        bubbles = 0
+        shared_areas = 0
         for flow in self:
             if flow.complete():
-                print('comp', flow.colour, flow.complete())
-                bubbles += 1
+                #print('comp', flow.colour, flow.complete())
+                shared_areas += 1
             else:
-                print('incomp', flow.path[-1], flow.pair.path[-1])
+                #print('incomp', flow.path[-1], flow.pair.path[-1])
                 for area in self.area_finder():
-                    print('area', area)
+                    #print('area', area)
                     if (flow.path[-1] in area) and (flow.pair.path[-1] in area):
-                        print('match', area, flow.path[-1], flow.pair.path[-1])
-                        bubbles += 1
-        print(bubbles, len(self))
-        return bubbles == len(self)
+                        #print('match', area, flow.path[-1], flow.pair.path[-1])
+                        shared_areas += 1
+        #print(shared_areas, len(self))
+        return shared_areas == len(self)
+
+    def dammed(self):
+        """
+        Returns True if any areas are isolated ie have no (incomplete) Flow ends in them
+        Gets all areas to see if they have at least one flow end in it
+        If any dont have a Flow end then it returns True
+        usage: if not Level.dammed(): continue
+        :return: bool
+        """
+        return any([not([flow.path[-1] for flow in self if flow.path[-1] in area]) for area in self.area_finder()])
 
 
 def measure_distance(pos_one, pos_two):
