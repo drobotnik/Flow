@@ -158,10 +158,12 @@ class Level(object):
         #need to remember to return all options if introducing preemptive moves
         """
         #l3x1 should not be looping since n(0,0) is blocked
-        if not self.blocked():
+        if any([self.blocked(), self.dammed(), not self.all_areas_shared()]):
+                return []
+        else:
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
             return flow_options
-        return []
+
 
     def rank_options(self):
         """
@@ -209,7 +211,9 @@ class Level(object):
     def area_finder(self):
         """
         Returns the different areas
-        Note that flow ends are not included as blocking. This is to make it easier to test if the ends are in the areas
+        Note that flow ends are not included as blocking.
+        ###Fix this^^^
+        This is to make it easier to test if the ends are in the areas
         :return: list of tuples
         """
         filled = []
@@ -286,7 +290,8 @@ def solve(level):
     elif options:
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            print('DE', level.blocked(), 'KN', level.knot_checker())
+            #if any([level.blocked(), level.dammed(), not level.all_areas_shared()]):
+                #input('DE {}, KN {}, CN {}'.format(level.blocked(), level.dammed(), not level.all_areas_shared()))
             print(level, '\n')
             possible = solve(deepcopy(level))
             if type(possible) == list:
