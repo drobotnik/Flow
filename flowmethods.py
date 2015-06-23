@@ -1,4 +1,5 @@
 from copy import deepcopy
+from itertools import product
 
 
 def get_nodes(lvl):
@@ -50,6 +51,9 @@ class Flow(object):
 
     def __str__(self):
         return "Flow: {} Path: {} - {}".format(self.colour, self.path, self.pair.path[::-1])
+
+    def __len__(self):
+        return len(self.path)
 
     def link(self, pair):
         self.pair = pair
@@ -114,6 +118,9 @@ class Level(object):
     def __iter__(self):
         for flow in self.flow_list:
             yield flow
+
+    def __len__(self):
+        return len(self.flow_list)
 
     def make_array(self):
         out = [['' for _ in range(self.size)] for _ in range(self.size)]
@@ -195,6 +202,46 @@ class Level(object):
         score *= dist(flow, move) / 10  # reduces weighting of distance
         # print('final score', round(score, 2), flow.colour, move)
         return score
+
+    def area_finder(self):
+        filled = []
+        for flow in self:
+            if flow.complete():
+                filled += flow.path
+            else:
+                filled += flow.path[:-1]
+
+        empties = []
+        for spot in product(range(self.size), repeat=2):
+            if spot not in filled:
+                empties += [spot]
+
+        areas = []
+        while empties:
+            area = [empties.pop()]
+            for spot in area:
+                for adj in self.find_adjacent(spot):
+                    try:
+                        area += [empties.pop(empties.index(adj))]
+                    except ValueError:
+                        pass
+            areas += [area]
+        return areas
+
+    def connected_areas(self):
+        """
+        Return True if all Flow ends are in the same 'area' ie not impossible to be connected
+        :return: bool
+        """
+        bubbles = 0
+        for flow in self:
+            if flow.complete():
+                bubbles += 1
+            else:
+                for area in self.area_finder():
+                    if (flow.path[-1] in area) and (flow.pair.path[-1] in area):
+                        bubbles += 1
+        return bubbles == len(self)
 
 
 def measure_distance(pos_one, pos_two):

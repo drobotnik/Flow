@@ -8,3 +8,5 @@ for n, p in enumerate([0, 1, 2, 3], 2):
 
 
 print(ord('A'))
+
+print('yes' * 10)
