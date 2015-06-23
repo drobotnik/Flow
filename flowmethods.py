@@ -126,7 +126,10 @@ class Level(object):
         out = [['' for _ in range(self.size)] for _ in range(self.size)]
         for flow in self.flow_list:
             for row, col in flow.path:
-                out[row][col] = flow.colour
+                if (row, col) == flow.path[-1]:
+                    out[row][col] = chr(ord(flow.colour) + 32)
+                else:
+                    out[row][col] = flow.colour
         return out
 
     def find_adjacent(self, position):
@@ -236,11 +239,16 @@ class Level(object):
         bubbles = 0
         for flow in self:
             if flow.complete():
+                print('comp', flow.colour, flow.complete())
                 bubbles += 1
             else:
+                print('incomp', flow.path[-1], flow.pair.path[-1])
                 for area in self.area_finder():
+                    print('area', area)
                     if (flow.path[-1] in area) and (flow.pair.path[-1] in area):
+                        print('match', area, flow.path[-1], flow.pair.path[-1])
                         bubbles += 1
+        print(bubbles, len(self))
         return bubbles == len(self)
 
 

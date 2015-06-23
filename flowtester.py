@@ -16,13 +16,13 @@ two_flows_blank = [[[], []],
 one_flow_blank = [[[], []]]
 
 t = Level(t2l42)
+y = Level(t2l52)
 
 
 
-
+print(t)
 print(t.connected_areas())
 
 
-a = [1, 2, 3]
-b = [2, 2, 3]
-c = [3, 3, 3]
+print(y)
+print(y.connected_areas())
