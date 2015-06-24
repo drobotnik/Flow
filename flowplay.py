@@ -1,12 +1,9 @@
-print(8 / 16)
+a = [1, 2, 3]
+b = [3, 4, 5]
 
-print(type([['1', '2']][0]))
+from itertools import product
 
-
-for n, p in enumerate([0, 1, 2, 3], 2):
-    print(n, p)
-
-
-print(ord('A'))
-
-print('yes' * 10)
+for x, y in product(a, b):
+    print(x, y)
+    if x == y:
+        break

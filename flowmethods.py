@@ -157,13 +157,11 @@ class Level(object):
         ie - multiple Flows have multiple options
         #need to remember to return all options if introducing preemptive moves
         """
-        #l3x1 should not be looping since n(0,0) is blocked
         if any([self.blocked(), self.dammed(), not self.all_areas_shared()]):
                 return []
         else:
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
             return flow_options
-
 
     def rank_options(self):
         """
@@ -173,7 +171,6 @@ class Level(object):
         """
         options = self.make_options()
         options = sorted(options, key=lambda x: len(x[1]))
-
         for flow, option in options:
             if len(option) == 1:
                 for move in option:
@@ -211,17 +208,12 @@ class Level(object):
     def area_finder(self):
         """
         Returns the different areas
-        Note that flow ends are not included as blocking.
-        ###Fix this^^^
         This is to make it easier to test if the ends are in the areas
         :return: list of tuples
         """
         filled = []
         for flow in self:
-            if flow.complete():
-                filled += flow.path
-            else:
-                filled += flow.path[:-1]
+            filled += flow.path
 
         empties = []
         for spot in product(range(self.size), repeat=2):
@@ -238,6 +230,17 @@ class Level(object):
                     except ValueError:
                         pass
             areas += [area]
+
+        ends = [flow.path[-1] for flow in self]
+        # -> print('ends', ends) leave this in to inspect how often this code is called
+        for end in ends:
+            for area in areas:
+                for pos in self.find_adjacent(end):
+                    print(pos, area)
+                    if pos in area:
+                        area += [pos]
+                        break
+
         return areas
 
     def all_areas_shared(self):
@@ -248,16 +251,11 @@ class Level(object):
         shared_areas = 0
         for flow in self:
             if flow.complete():
-                #print('comp', flow.colour, flow.complete())
                 shared_areas += 1
             else:
-                #print('incomp', flow.path[-1], flow.pair.path[-1])
                 for area in self.area_finder():
-                    #print('area', area)
                     if (flow.path[-1] in area) and (flow.pair.path[-1] in area):
-                        #print('match', area, flow.path[-1], flow.pair.path[-1])
                         shared_areas += 1
-        #print(shared_areas, len(self))
         return shared_areas == len(self)
 
     def dammed(self):
@@ -279,7 +277,6 @@ def make_move(branch, options, flow, move):
     if branch > 0:
         last_move = options[branch - 1][0]
         last_move.path.pop()
-    #print('placing', flow.colour, move)
     flow.add_dot(move)
 
 
@@ -290,8 +287,6 @@ def solve(level):
     elif options:
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            #if any([level.blocked(), level.dammed(), not level.all_areas_shared()]):
-                #input('DE {}, KN {}, CN {}'.format(level.blocked(), level.dammed(), not level.all_areas_shared()))
             print(level, '\n')
             possible = solve(deepcopy(level))
             if type(possible) == list:

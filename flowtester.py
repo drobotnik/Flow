@@ -28,7 +28,10 @@ l = [[n, Level(x)] for n, x in enumerate([t1l31,
 for n, level in l:
     print(n)
     print(level)
-    print('Number of areas: {}'.format(len(level.area_finder())))
+    area_finder = level.area_finder()
+    print('Number of areas: {}'.format(len(area_finder)))
+    for na, area in enumerate(area_finder):
+        print("Area {}: {}".format(na, area))
     print('dammed areas?', level.dammed())
     print('all flow ends share areas?', level.all_areas_shared())
     print('blocked flows?', level.blocked())
