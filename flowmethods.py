@@ -1,5 +1,5 @@
 from copy import deepcopy
-from itertools import product
+from itertools import product, chain
 
 
 def get_nodes(lvl):
@@ -50,6 +50,7 @@ class Flow(object):
             self.path = [path]
         elif type(path) == list:
             self.path = path
+        self.end = path[-1]
 
     def __str__(self):
         return "Flow: {} Path: {} - {}".format(self.colour, self.path, self.pair.path[::-1])
@@ -80,7 +81,7 @@ class Flow(object):
         """
         returns True if Flow is complete
         Does this by testing if end of flow path is next to self.finish"""
-        return measure_distance(self.path[-1], self.pair.path[-1]) == 1
+        return distance(self.path[-1], self.pair.path[-1]) == 1
 
     def blocked(self, lvl):
         """
@@ -110,6 +111,10 @@ class Level(object):
                 lvl, size = lvl
             self.flow_list = make_flows(lvl)
             self.size = size
+        self.filled = list(chain(*(flow.path for flow in self.flow_list)))
+        self.tubes = list(chain(*(flow.path[:-1] for flow in self.flow_list)))
+        self.empties = list(chain(*([spot] for spot in product(range(self.size), repeat=2) if spot not in self.filled)))
+        self.ends = [flow.end for flow in self.flow_list]
 
     def __str__(self):
         """
@@ -140,6 +145,19 @@ class Level(object):
         adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
         return adj_rows + adj_cols
 
+    def adjacent_types(self, position):
+        empties, tube, ends = [], [], []
+        for position in self.find_adjacent(position):
+            if position in self.ends:
+                ends += [position]
+            elif position in self.empties:
+                empties += [position]
+            elif position in self.tubes:
+                tube += [position]
+            else:
+                input('error')
+        return empties, tube, ends
+
     def blocked(self):
         """
         returns True if any of the flows in the level are blocked
@@ -159,7 +177,7 @@ class Level(object):
         ie - multiple Flows have multiple options
         #need to remember to return all options if introducing preemptive moves
         """
-        if any([self.blocked(), self.dammed(), self.seperated_flows()]):
+        if any([self.blocked(), self.dammed(), self.seperated_flows(), self.cornered()]):
                 return []
         else:
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
@@ -202,7 +220,7 @@ class Level(object):
         if pot_empties < 3 and pair_empties < 3:  # prioritise flows where both ends are against an edge or corner
             score *= 0.1
 
-        dist = lambda f, m: measure_distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
+        dist = lambda f, m: distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
         score *= dist(flow, move) / 10  # reduces weighting of distance
         # print('final score', round(score, 2), flow.colour, move)
         return score
@@ -213,13 +231,7 @@ class Level(object):
         This is to make it easier to test if the ends are in the areas
         :return: list of tuples
         """
-        filled = []
-        for flow in self:
-            filled += flow.path
-        empties = []
-        for spot in product(range(self.size), repeat=2):
-            if spot not in filled:
-                empties += [spot]
+        empties = deepcopy(self.empties)
         areas = []
         while empties:
             area = [empties.pop()]
@@ -273,8 +285,16 @@ class Level(object):
         #print('Dammed {} {}'.format(total, len(self.area_finder())))
         return total != len(self.area_finder())
 
+    def cornered(self):
+        for empty in deepcopy(self.empties):
+            empties, tube, ends = self.adjacent_types(empty)
+            if (len(empties) == 1) and not ends:
+                input('cornered: {}'.format(empty))
+                return True
+        return False
 
-def measure_distance(pos_one, pos_two):
+
+def distance(pos_one, pos_two):
     return sum([abs(i - j) for i, j in zip(pos_one, pos_two)])
 
 
