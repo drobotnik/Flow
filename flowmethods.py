@@ -1,5 +1,5 @@
 from copy import deepcopy
-from itertools import product
+from itertools import product, chain
 
 
 def get_nodes(lvl):
@@ -50,6 +50,7 @@ class Flow(object):
             self.path = [path]
         elif type(path) == list:
             self.path = path
+        self.end = self.path[-1]
 
     def __str__(self):
         return "Flow: {} Path: {} - {}".format(self.colour, self.path, self.pair.path[::-1])
@@ -65,7 +66,7 @@ class Flow(object):
         return list of tuples giving empty spaces next to flow end. False if none
         """
         if position is None:
-            position = self.path[-1]
+            position = self.end
         if not self.complete():
             row, col = position
             adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < lvl.size and not lvl.make_array()[row + adj][col]]
@@ -80,7 +81,7 @@ class Flow(object):
         """
         returns True if Flow is complete
         Does this by testing if end of flow path is next to self.finish"""
-        return measure_distance(self.path[-1], self.pair.path[-1]) == 1
+        return measure_distance(self.end, self.pair.end) == 1
 
     def blocked(self, lvl):
         """
@@ -110,6 +111,9 @@ class Level(object):
                 lvl, size = lvl
             self.flow_list = make_flows(lvl)
             self.size = size
+        self.filled = list(chain(*[flow.path for flow in self.flow_list]))
+        self.empties = list(chain(spot for spot in product(range(self.size), repeat=2) if spot not in self.filled))
+
 
     def __str__(self):
         """
@@ -128,7 +132,7 @@ class Level(object):
         out = [['' for _ in range(self.size)] for _ in range(self.size)]
         for flow in self.flow_list:
             for row, col in flow.path:
-                if (row, col) == flow.path[-1]:
+                if (row, col) == flow.end:
                     out[row][col] = chr(ord(flow.colour) + 32)
                 else:
                     out[row][col] = flow.colour
@@ -146,6 +150,8 @@ class Level(object):
         :return: bool
         """
         dead_end = any(f.blocked(self) for f in self.flow_list)
+        print()
+        print([[f.colour, f.end, f.blocked(self)] for f in self.flow_list])
         # blocked if it is empty and has 0 empties and 0 flow ends
         return dead_end
 
@@ -160,7 +166,10 @@ class Level(object):
         #need to remember to return all options if introducing preemptive moves
         """
         if any([self.blocked(), self.dammed(), self.seperated_flows()]):
-                return []
+            print(self.blocked(), self.dammed(), self.seperated_flows())
+            print(self)
+            input()
+            return []
         else:
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
             return flow_options
@@ -194,18 +203,19 @@ class Level(object):
         flow, move = flow_option
         score = 1
         pot_empties = len(flow.find_empties(self, move))
-        pair_empties = len(flow.pair.find_empties(self, flow.pair.path[-1]))
+        pair_empties = len(flow.pair.find_empties(self, flow.pair.end))
         if pot_empties == 1:
             score *= 0.1  # This is a corner or tunnel <- must be filled. Problem is, two ends may make a 'corner'
         if pot_empties == 2:
             score *= 0.5  # this is an edge
         if pot_empties < 3 and pair_empties < 3:  # prioritise flows where both ends are against an edge or corner
             score *= 0.1
+        # dissuade from looping back on itself?
 
-        dist = lambda f, m: measure_distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
+        dist = lambda f, m: measure_distance(f.pair.end, m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
         score *= dist(flow, move) / 10  # reduces weighting of distance
-        # print('final score', round(score, 2), flow.colour, move)
         return score
+
 
     def area_finder(self):
         """
@@ -213,13 +223,8 @@ class Level(object):
         This is to make it easier to test if the ends are in the areas
         :return: list of tuples
         """
-        filled = []
-        for flow in self:
-            filled += flow.path
-        empties = []
-        for spot in product(range(self.size), repeat=2):
-            if spot not in filled:
-                empties += [spot]
+
+        empties = deepcopy(self.empties)
         areas = []
         while empties:
             area = [empties.pop()]
@@ -230,7 +235,7 @@ class Level(object):
                     except ValueError:
                         pass
             areas += [area]
-        ends = [flow.path[-1] for flow in self]
+        ends = [flow.end for flow in self]
         for end in ends:
             for area in areas:
                 for pos in self.find_adjacent(end):
@@ -250,7 +255,7 @@ class Level(object):
                 connected_flows += 1
             else:
                 for area in self.area_finder():
-                    if (flow.path[-1] in area) and (flow.pair.path[-1] in area):
+                    if (flow.end in area) and (flow.pair.end in area):
                         connected_flows += 1
                         break
         return connected_flows != len(self)
@@ -266,12 +271,16 @@ class Level(object):
         total = 0
         for area in self.area_finder():
             for flow in self:
-                if (flow.path[-1] in area) and (flow.pair.path[-1] in area) and not flow.complete():
+                if (flow.end in area) and (flow.pair.end in area) and not flow.complete():
                     total += 1
                     break
 
         #print('Dammed {} {}'.format(total, len(self.area_finder())))
         return total != len(self.area_finder())
+
+    def cornered(self):
+        if True:
+            return False
 
 
 def measure_distance(pos_one, pos_two):
@@ -292,7 +301,7 @@ def solve(level):
     elif options:
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            print(level, '\n')
+            #print(level, '\n')
             possible = solve(deepcopy(level))
             if type(possible) == list:
                 return possible
