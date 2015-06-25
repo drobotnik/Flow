@@ -125,6 +125,18 @@ class Level(object):
     def __len__(self):
         return len(self.flow_list)
 
+    def filled(self):
+        return list(chain(*(flow.path for flow in self.flow_list)))
+
+    def tubes(self):
+        return list(chain(*(flow.path[:-1] for flow in self.flow_list)))
+
+    def empties(self):
+        return list(chain(*([spot] for spot in product(range(self.size), repeat=2) if spot not in self.filled())))
+
+    def ends(self):
+        return [flow.path[-1] for flow in self.flow_list]
+
     def make_array(self):
         out = [['' for _ in range(self.size)] for _ in range(self.size)]
         for flow in self.flow_list:
@@ -157,15 +169,6 @@ class Level(object):
                                 "tub{} end{}".format(position, pos, self.find_adjacent(position), empties, tube, ends))
         return empties, tube, ends
 
-    def blocked(self):
-        """
-        returns True if any of the flows in the level are blocked
-        :return: bool
-        """
-        dead_end = any(f.blocked(self) for f in self.flow_list)
-        # blocked if it is empty and has 0 empties and 0 flow ends
-        return dead_end
-
     def complete(self):
         map_full = all(all(row) for row in self.make_array())
         flows_done = all(f.complete() for f in self.flow_list)
@@ -176,7 +179,7 @@ class Level(object):
         ie - multiple Flows have multiple options
         #need to remember to return all options if introducing preemptive moves
         """
-        if any([self.blocked(), self.dammed(), self.seperated_flows(), self.cornered()]):
+        if any(self.impossibilities()):
             return []
         else:
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
@@ -251,6 +254,14 @@ class Level(object):
                         break
         return areas
 
+    def blocked(self):
+        """
+        returns True if any of the flows in the level are blocked
+        :return: bool
+        """
+        return any(f.blocked(self) for f in self.flow_list)
+        # blocked if it is empty and has 0 empties and 0 flow ends
+
     def seperated_flows(self):
         """
         Return True if not all Flow ends are in the same 'area' ie possible to be connected
@@ -289,21 +300,14 @@ class Level(object):
             # if empty == (0, 0):
             # print(empty, "empties{}, tube{}, end{}".format(*self.adjacent_types(empty)))
             if (len(empties) == 1) and not ends:
-                input('cornered: {}'.format(empty))
                 return True
         return False
 
-    def filled(self):
-        return list(chain(*(flow.path for flow in self.flow_list)))
-
-    def tubes(self):
-        return list(chain(*(flow.path[:-1] for flow in self.flow_list)))
-
-    def empties(self):
-        return list(chain(*([spot] for spot in product(range(self.size), repeat=2) if spot not in self.filled())))
-
-    def ends(self):
-        return [flow.path[-1] for flow in self.flow_list]
+    def impossibilities(self):
+        yield self.blocked()
+        yield self.seperated_flows()
+        yield self.dammed()
+        yield self.cornered()
 
 
 def distance(pos_one, pos_two):
@@ -318,7 +322,7 @@ def make_move(branch, options, flow, move):
 
 
 def solve(level):
-    print(level, '\n')
+    #print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
