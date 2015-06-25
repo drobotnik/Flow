@@ -30,6 +30,7 @@ l = [[n, Level(x)] for n, x in enumerate([t1l31, t1l32, t1l33, t1l34,  # 32 and 
 for n, level in l:
     print(n)
     print(level)
+    print(len(level.ends) == len(level), (len(level.tubes) + len(level.ends)) == len(level.filled), level.size ** 2 == len(level.filled) + len(level.empties))
     if not any([level.blocked(), level.dammed(), level.seperated_flows(), level.cornered(), True]):
         print('OK')
     else:

@@ -32,7 +32,7 @@ def make_flows(flow_path_lists):
     """
     out = []
     for n, [a, b] in enumerate(flow_path_lists, 65):
-        #print(n, a, b)
+        # print(n, a, b)
 
         out += [[Flow(chr(n), a), Flow(chr(n), b)]]
     for a, b in out:
@@ -42,15 +42,14 @@ def make_flows(flow_path_lists):
 
 
 class Flow(object):
-
     def __init__(self, colour, path, pair=[]):
         self.colour = colour
         self.pair = pair
-        if type(path) == tuple:  # These tests are to check if the flows are being created organically or for testing purposes
+        if type(
+                path) == tuple:  # These tests are to check if the flows are being created organically or for testing purposes
             self.path = [path]
         elif type(path) == list:
             self.path = path
-        self.end = path[-1]
 
     def __str__(self):
         return "Flow: {} Path: {} - {}".format(self.colour, self.path, self.pair.path[::-1])
@@ -69,8 +68,10 @@ class Flow(object):
             position = self.path[-1]
         if not self.complete():
             row, col = position
-            adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < lvl.size and not lvl.make_array()[row + adj][col]]
-            adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < lvl.size and not lvl.make_array()[row][col + adj]]
+            adj_rows = [(row + adj, col) for adj in (-1, 1) if
+                        0 <= row + adj < lvl.size and not lvl.make_array()[row + adj][col]]
+            adj_cols = [(row, col + adj) for adj in (-1, 1) if
+                        0 <= col + adj < lvl.size and not lvl.make_array()[row][col + adj]]
             return adj_rows + adj_cols
         return False
 
@@ -88,12 +89,11 @@ class Flow(object):
         returns True if Flow is blocked > not complete and no move options
         Does this by testing if flow is incomplete and has no options on one or both ends """
         # l3x2 should break immediately because f1 is blocked in (0, 0)
-        blocked = not(self.find_empties(lvl) or self.complete())
+        blocked = not (self.find_empties(lvl) or self.complete())
         return blocked
 
 
 class Level(object):
-
     def __init__(self, lvl, size=0):
         """
         Takes either a level diagram (list of lists) or a list of flow paths
@@ -111,10 +111,6 @@ class Level(object):
                 lvl, size = lvl
             self.flow_list = make_flows(lvl)
             self.size = size
-        self.filled = list(chain(*(flow.path for flow in self.flow_list)))
-        self.tubes = list(chain(*(flow.path[:-1] for flow in self.flow_list)))
-        self.empties = list(chain(*([spot] for spot in product(range(self.size), repeat=2) if spot not in self.filled)))
-        self.ends = [flow.end for flow in self.flow_list]
 
     def __str__(self):
         """
@@ -143,19 +139,22 @@ class Level(object):
         row, col = position
         adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
         adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
+        # print('find adj', position, adj_rows, adj_cols)
         return adj_rows + adj_cols
 
     def adjacent_types(self, position):
         empties, tube, ends = [], [], []
-        for position in self.find_adjacent(position):
-            if position in self.ends:
-                ends += [position]
-            elif position in self.empties:
-                empties += [position]
-            elif position in self.tubes:
-                tube += [position]
+        for pos in self.find_adjacent(position):
+            # print(position, self.ends(), self.empties(), self.tubes())
+            if pos in self.ends():
+                ends += [pos]
+            elif pos in self.empties():
+                empties += [pos]
+            elif pos in self.tubes():
+                tube += [pos]
             else:
-                input('error')
+                raise Exception("position{} pos{} adj{} emp{} "
+                                "tub{} end{}".format(position, pos, self.find_adjacent(position), empties, tube, ends))
         return empties, tube, ends
 
     def blocked(self):
@@ -178,7 +177,7 @@ class Level(object):
         #need to remember to return all options if introducing preemptive moves
         """
         if any([self.blocked(), self.dammed(), self.seperated_flows(), self.cornered()]):
-                return []
+            return []
         else:
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
             return flow_options
@@ -220,7 +219,8 @@ class Level(object):
         if pot_empties < 3 and pair_empties < 3:  # prioritise flows where both ends are against an edge or corner
             score *= 0.1
 
-        dist = lambda f, m: distance(f.pair.path[-1], m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
+        dist = lambda f, m: distance(f.pair.path[-1],
+                                     m)  # Ranks options by how close they take flow to finish. choice between 2 moves from same flow will be dist +/- 2
         score *= dist(flow, move) / 10  # reduces weighting of distance
         # print('final score', round(score, 2), flow.colour, move)
         return score
@@ -231,7 +231,7 @@ class Level(object):
         This is to make it easier to test if the ends are in the areas
         :return: list of tuples
         """
-        empties = deepcopy(self.empties)
+        empties = deepcopy(self.empties())
         areas = []
         while empties:
             area = [empties.pop()]
@@ -281,17 +281,29 @@ class Level(object):
                 if (flow.path[-1] in area) and (flow.pair.path[-1] in area) and not flow.complete():
                     total += 1
                     break
-
-        #print('Dammed {} {}'.format(total, len(self.area_finder())))
         return total != len(self.area_finder())
 
     def cornered(self):
-        for empty in deepcopy(self.empties):
+        for empty in deepcopy(self.empties()):
             empties, tube, ends = self.adjacent_types(empty)
+            # if empty == (0, 0):
+            # print(empty, "empties{}, tube{}, end{}".format(*self.adjacent_types(empty)))
             if (len(empties) == 1) and not ends:
                 input('cornered: {}'.format(empty))
                 return True
         return False
+
+    def filled(self):
+        return list(chain(*(flow.path for flow in self.flow_list)))
+
+    def tubes(self):
+        return list(chain(*(flow.path[:-1] for flow in self.flow_list)))
+
+    def empties(self):
+        return list(chain(*([spot] for spot in product(range(self.size), repeat=2) if spot not in self.filled())))
+
+    def ends(self):
+        return [flow.path[-1] for flow in self.flow_list]
 
 
 def distance(pos_one, pos_two):
@@ -306,13 +318,13 @@ def make_move(branch, options, flow, move):
 
 
 def solve(level):
+    print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
     elif options:
         for n, [flow, move] in enumerate(options):
             make_move(n, options, flow, move)
-            print(level, '\n')
             possible = solve(deepcopy(level))
             if type(possible) == list:
                 return possible

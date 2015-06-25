@@ -43,22 +43,22 @@ def test(array, size=0):
     else:
         print(outtext.format('Unsolvable!', *outparams))
         print(seed)
-    #input('Continue')
+    input('Continue')
 
 
 if __name__ == "__main__":
-    levels = [#l31,
+    levels = [l31,
               # l42,  # Bug on this one because flows are 'finished' before map is full
-              # l43,
-              # l44,
-              # l51,
-              # l61,
-              # l62,
-              # l71,
-              # # l72,  # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
-              # l81,
-              # l91,
-              # l101,
+              l43,
+              l44,
+              l51,
+              l61,
+              l62,
+              l71,
+              # l72,  # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
+              l81,
+              l91,
+              l101,
               l121,
               l141]
 
