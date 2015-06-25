@@ -12,15 +12,14 @@ end_clock = time.time()
 
 
 def timer():
-    # Code just to check performance
+        #Code just to check performance
     global loops, start_clock, end_clock
     loops += 1
     if loops % 10000 == 0:
         end_clock, start_clock = time.time(), end_clock
         print('{}s for last 0.01m loops. Total loops: {}m, Total time: {}mins'.format(round(end_clock - start_clock, 2),
-                                                                                      round(loops / 100000, 2),
-                                                                                      round((time.time() - clock) / 60,
-                                                                                            2)))
+                                                                                round(loops / 100000, 2),
+                                                                                round((time.time() - clock) / 60, 2)))
 
 
 def test(array, size=0):
@@ -31,7 +30,7 @@ def test(array, size=0):
     seed = Level(array, size)
     print('\n*****Testing.    size: {} Layout:'.format(seed.size))
     print(seed, '\n')
-    #input('Continue')
+    input('Continue')
     solution = solve(deepcopy(seed))
     loops = 'N/A'
     outparams = (round(time.time() - then, 3), loops)
@@ -44,7 +43,7 @@ def test(array, size=0):
     else:
         print(outtext.format('Unsolvable!', *outparams))
         print(seed)
-    #input('Continue')
+    input('Continue')
 
 
 if __name__ == "__main__":
@@ -55,14 +54,15 @@ if __name__ == "__main__":
               l51,
               l61,
               l62,
-              l71,
+              l71]
               # l72,  # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
-              l81,
-              l91,
-              l101,
-              l121,
-              l141]
+              # l81,
+              # l91,
+              # l101,
+              # l121,
+              # l141]
 
     for n, level in enumerate(levels):
         test(level)
+
 
