@@ -169,6 +169,7 @@ class Level(object):
                                 "tub{} end{}".format(position, pos, self.find_adjacent(position), empties, tube, ends))
         return empties, tube, ends
 
+
     def complete(self):
         map_full = all(all(row) for row in self.make_array())
         flows_done = all(f.complete() for f in self.flow_list)
@@ -295,18 +296,28 @@ class Level(object):
         return total != len(self.area_finder())
 
     def cornered(self):
-        for empty in deepcopy(self.empties()):
-            empties, tube, ends = self.adjacent_types(empty)
-            # if empty == (0, 0):
-            # print(empty, "empties{}, tube{}, end{}".format(*self.adjacent_types(empty)))
-            if (len(empties) == 1) and not ends:
-                return True
-        return False
+        for empty in self.empties():
+            print(empty)
+            safe_spaces = 0
+            while safe_spaces < 2:  # while unsafe
+                print('outer', safe_spaces)
+                for pos in self.find_adjacent(empty):  # go through adjacent squares
+                    print(pos, 'pos')
+                    if pos in self.ends() or pos in self.empties():
+                        safe_spaces += 1  # if safe, record so
+                        print('adding', safe_spaces)
+
+                print('uhoh')
+                return False  # if get through list and still unsafe, return True
+        return True  # if get through all
+
 
     def impossibilities(self):
         yield self.blocked()
         yield self.seperated_flows()
         yield self.dammed()
+        if len(self.empties()) * 2 < len(self.filled()):
+            print('checking cornered')
         yield self.cornered()
 
 
@@ -322,7 +333,7 @@ def make_move(branch, options, flow, move):
 
 
 def solve(level):
-    #print(level, '\n')
+    print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
