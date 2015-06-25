@@ -55,13 +55,13 @@ if __name__ == "__main__":
               l51,
               l61,
               l62,
-              l71]
+              l71,
               # l72,  # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
-              # l81,
-              # l91,
-              # l101,
-              # l121,
-              # l141]
+              l81,
+              l91,
+              l101,
+              l121,
+              l141]
 
     for n, level in enumerate(levels):
         test(level)
