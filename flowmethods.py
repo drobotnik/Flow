@@ -32,6 +32,8 @@ def make_flows(flow_path_lists):
     """
     out = []
     for n, [a, b] in enumerate(flow_path_lists, 65):
+        #print(n, a, b)
+
         out += [[Flow(chr(n), a), Flow(chr(n), b)]]
     for a, b in out:
         a.link(b)
@@ -157,7 +159,7 @@ class Level(object):
         ie - multiple Flows have multiple options
         #need to remember to return all options if introducing preemptive moves
         """
-        if any([self.blocked(), self.dammed(), not self.all_areas_shared()]):
+        if any([self.blocked(), self.dammed(), self.seperated_flows()]):
                 return []
         else:
             flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
@@ -214,12 +216,10 @@ class Level(object):
         filled = []
         for flow in self:
             filled += flow.path
-
         empties = []
         for spot in product(range(self.size), repeat=2):
             if spot not in filled:
                 empties += [spot]
-
         areas = []
         while empties:
             area = [empties.pop()]
@@ -230,33 +230,30 @@ class Level(object):
                     except ValueError:
                         pass
             areas += [area]
-
         ends = [flow.path[-1] for flow in self]
-        # -> print('ends', ends) leave this in to inspect how often this code is called
         for end in ends:
             for area in areas:
                 for pos in self.find_adjacent(end):
-                    print(pos, area)
                     if pos in area:
-                        area += [pos]
+                        area += [end]
                         break
-
         return areas
 
-    def all_areas_shared(self):
+    def seperated_flows(self):
         """
-        Return True if all Flow ends are in the same 'area' ie not impossible to be connected
+        Return True if not all Flow ends are in the same 'area' ie possible to be connected
         :return: bool
         """
-        shared_areas = 0
+        connected_flows = 0
         for flow in self:
             if flow.complete():
-                shared_areas += 1
+                connected_flows += 1
             else:
                 for area in self.area_finder():
                     if (flow.path[-1] in area) and (flow.pair.path[-1] in area):
-                        shared_areas += 1
-        return shared_areas == len(self)
+                        connected_flows += 1
+                        break
+        return connected_flows != len(self)
 
     def dammed(self):
         """
@@ -266,7 +263,15 @@ class Level(object):
         usage: if not Level.dammed(): continue
         :return: bool
         """
-        return any([not([flow.path[-1] for flow in self if flow.path[-1] in area]) for area in self.area_finder()])
+        total = 0
+        for area in self.area_finder():
+            for flow in self:
+                if (flow.path[-1] in area) and (flow.pair.path[-1] in area) and not flow.complete():
+                    total += 1
+                    break
+
+        #print('Dammed {} {}'.format(total, len(self.area_finder())))
+        return total != len(self.area_finder())
 
 
 def measure_distance(pos_one, pos_two):
