@@ -3,7 +3,6 @@ from itertools import product, chain
 from string import ascii_uppercase, ascii_lowercase
 
 
-
 def get_nodes(lvl):
     """
     Gets list of node locations from level diagra,.
@@ -173,25 +172,12 @@ class Level(object):
         Important to return ALL options unless
         :return:
         """
-        options = self.make_options()
-        # next breakthrough:
-        #  for  any flow in flows:
-        #     if all options it might take result in a fail:
-        #            return False
-        # This should be able to replace the other checks we do - all checks (where possible)
-        # are local. This should not add too much algorithmic complexity as cornered etc will happen at this point
-        #  instead of later . Coding this will be more difficult though
-        # May need to draw out algorithm.
-        # options = sorted(options, key=lambda x: len(x[1]))
-        out = []
+        options = list(self.make_options())
+        options = sorted(options, key=lambda x: len(x[1]))
         for flow, option in options:
-            if len(option) == 1:
-                return [[flow, option[0]]]
-            else:
-                for move in option:
-                    out += [[flow, move]]  # Unpack options
-        out = sorted(out, key=self.score_option)
-        return out
+            for move in sorted(option, key=self.score_option):
+                yield [flow, move]  # Unpack options
+            break
 
     def score_option(self, flow_option):
         """
@@ -332,7 +318,7 @@ class Level(object):
                     else:
                         print('cornered', 'end', end, 'pos', (r, c))
                         print(self)
-                        print()
+                        print(_)
                         return True
         return False
 
@@ -341,6 +327,8 @@ class Level(object):
         yield self.seperated_flows()
         yield self.dammed()
         yield self.cornered()
+
+
 
 
 def distance(pos_one, pos_two):
