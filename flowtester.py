@@ -51,5 +51,7 @@ for n, level in l:
 
 
 print(level)
-print()
-print(level[0])
+print('x')
+print(level.make_array())
+print(level.make_array()[0][3])
+print(';')

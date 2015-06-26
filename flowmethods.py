@@ -1,5 +1,7 @@
 from copy import deepcopy
 from itertools import product, chain
+from string import ascii_uppercase, ascii_lowercase
+
 
 
 def get_nodes(lvl):
@@ -125,18 +127,6 @@ class Level(object):
     def __len__(self):
         return self.size
 
-    def filled(self):
-        return list(chain(*(flow.path for flow in self.flow_list)))
-
-    def tubes(self):
-        return list(chain(*(flow.path[:-1] for flow in self.flow_list)))
-
-    def empties(self):
-        return list(chain(*([spot] for spot in product(range(self.size), repeat=2) if spot not in self.filled())))
-
-    def ends(self):
-        return [flow.path[-1] for flow in self.flow_list]
-
     def make_array(self):
         out = [['' for _ in range(self.size)] for _ in range(self.size)]
         for flow in self.flow_list:
@@ -149,17 +139,16 @@ class Level(object):
 
     def adjacent_types(self, position):
         empties, tube, ends = [], [], []
-        for pos in self.find_adjacent(position):
-            # print(position, self.ends(), self.empties(), self.tubes())
-            if pos in self.ends():
-                ends += [pos]
-            elif pos in self.empties():
-                empties += [pos]
-            elif pos in self.tubes():
-                tube += [pos]
+        for r, c in self.find_adjacent(position):
+            if self.make_array()[r][c] in ascii_lowercase:
+                ends += [(r, c)]
+            elif not self.make_array()[r][c]:
+                empties += [(r, c)]
+            elif self.make_array()[r][c] in ascii_uppercase:
+                tube += [(r, c)]
             else:
                 raise Exception("position{} pos{} adj{} emp{} "
-                                "tub{} end{}".format(position, pos, self.find_adjacent(position), empties, tube, ends))
+                                "tub{} end{}".format(position, (r, c), self.find_adjacent(position), empties, tube, ends))
         return empties, tube, ends
 
     def complete(self):
@@ -227,7 +216,7 @@ class Level(object):
         This is to make it easier to test if the ends are in the areas
         :return: list of tuples
         """
-        empties = deepcopy(self.empties())
+        empties = list(chain(*([(r, c)] for r, c in product(range(self.size), repeat=2) if not self.make_array()[r][c])))
         areas = []
         while empties:
             area = [empties.pop()]
@@ -304,7 +293,6 @@ class Level(object):
             out += adj_rows + adj_cols
             return out
 
-
     def cornered(self, specific=False):
         """
         States whether there is at least one cornered spot or not.
@@ -316,28 +304,26 @@ class Level(object):
         :return: bool
         """
         if type(specific) == tuple:
-            # raise Exception('specific..?')
-            #print('specific')
-            #ends = [spot for spot in self.find_adjacent(specific, diag=True) if spot in self.empties()]
-            ends = [specific]
+            #ends = [specific]
+            raise Exception('Im assuming this section is only for testing')
         else:
             # print('inspecific')
             ends = [flow.path[-1] for flow in self if not flow.complete()]
             #print('ends', ends)
         for end in ends:  # for each end
-            for position in self.find_adjacent(end, diag=True):  # for each 'danger square'
+            for r, c in self.find_adjacent(end, diag=True):  # for each 'danger square'
                 #print(end, 'pos', position)
-                if position in self.empties():
+                if not self.make_array()[r][c]:
                     safe_spaces = 0  # count safe spaces
-                    for space in self.find_adjacent(position, diag=False):  # for each space next to danger square
+                    for ar, ac in self.find_adjacent((r, c), diag=False):  # for each space next to danger square
                         #print('end', end, 'pos', position, 'space', space)
-                        if space in self.ends() or space in self.empties():  # if safe
+                        if self.make_array()[ar][ac] in ascii_lowercase or not self.make_array()[ar][ac]:  # if safe
                             safe_spaces += 1  # if record so
                             #print(safe_spaces)
                             if safe_spaces > 1:
                                 break
                     else:
-                        print('c true', 'end', end, 'pos', position, 'space', space)
+                        print('c true', 'end', end, 'pos', (r, c))#, (ar, ac))
                         print(self)
                         return True
         return False
@@ -346,8 +332,6 @@ class Level(object):
         yield self.blocked()
         yield self.seperated_flows()
         yield self.dammed()
-        # if len(self.empties()) * 2 < len(self.filled()):
-        # print('checking cornered')
         yield self.cornered()
 
 
@@ -363,7 +347,7 @@ def make_move(branch, options, flow, move):
 
 
 def solve(level):
-    # print(level, '\n')
+    #print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
