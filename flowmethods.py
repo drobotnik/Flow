@@ -174,6 +174,14 @@ class Level(object):
         :return:
         """
         options = self.make_options()
+        # next breakthrough:
+        #  for  any flow in flows:
+        #     if all options it might take result in a fail:
+        #            return False
+        # This should be able to replace the other checks we do - all checks (where possible)
+        # are local. This should not add too much algorithmic complexity as cornered etc will happen at this point
+        #  instead of later . Coding this will be more difficult though
+        # May need to draw out algorithm.
         # options = sorted(options, key=lambda x: len(x[1]))
         out = []
         for flow, option in options:
@@ -324,6 +332,7 @@ class Level(object):
                     else:
                         print('cornered', 'end', end, 'pos', (r, c))
                         print(self)
+                        print()
                         return True
         return False
 
@@ -346,7 +355,7 @@ def make_move(branch, options, flow, move):
 
 
 def solve(level):
-    #print(level, '\n')
+    print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
