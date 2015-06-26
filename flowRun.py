@@ -49,7 +49,7 @@ def test(array, size=0):
 
 if __name__ == "__main__":
     levels = [l31,
-              # l42,  # Bug on this one because flows are 'finished' before map is full
+              # # l42,  # Bug on this one because flows are 'finished' before map is full
               l43,
               l44,
               l51,
@@ -59,8 +59,8 @@ if __name__ == "__main__":
               # # l72,  # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
               l81,
               l91,
-              l101]#,
-              # l121]
+              l101,
+              l121]
               # l141]
 
     for n, level in enumerate(levels):

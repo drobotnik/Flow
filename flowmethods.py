@@ -68,10 +68,10 @@ class Flow(object):
             position = self.path[-1]
         if not self.complete():
             row, col = position
-            adj_rows = [(row + adj, col) for adj in (-1, 1) if
-                        0 <= row + adj < lvl.size and not lvl.make_array()[row + adj][col]]
-            adj_cols = [(row, col + adj) for adj in (-1, 1) if
-                        0 <= col + adj < lvl.size and not lvl.make_array()[row][col + adj]]
+            adj_rows = [(row + adj, col) for adj in (-1, 1)
+                        if 0 <= row + adj < lvl.size and not lvl.make_array()[row + adj][col]]
+            adj_cols = [(row, col + adj) for adj in (-1, 1)
+                        if 0 <= col + adj < lvl.size and not lvl.make_array()[row][col + adj]]
             return adj_rows + adj_cols
         return False
 
@@ -147,20 +147,6 @@ class Level(object):
                     out[row][col] = flow.colour
         return out
 
-    def find_adjacent(self, position, diag=False):
-        row, col = position
-        if not diag:
-            adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
-            adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
-            return adj_rows + adj_cols
-        elif diag:
-            out = []
-            for r, c in product(range(-1, 2), repeat=2):
-                if (r, c) != (0, 0):
-                    if all(0<= index < self.size for index in (row + r, col + c)):
-                        out += [(row + r, col + c)]
-            return out
-
     def adjacent_types(self, position):
         empties, tube, ends = [], [], []
         for pos in self.find_adjacent(position):
@@ -175,7 +161,6 @@ class Level(object):
                 raise Exception("position{} pos{} adj{} emp{} "
                                 "tub{} end{}".format(position, pos, self.find_adjacent(position), empties, tube, ends))
         return empties, tube, ends
-
 
     def complete(self):
         map_full = all(all(row) for row in self.make_array())
@@ -302,24 +287,67 @@ class Level(object):
                     break
         return total != len(self.area_finder())
 
-    def cornered(self):
-        for empty in self.empties():
-            safe_spaces = 0
-            for pos in self.find_adjacent(empty):
-                if pos in self.ends() or pos in self.empties():
-                    safe_spaces += 1  # if safe, record so
-                    if safe_spaces > 1:
-                        break
-            else:
-                return True
+    def find_adjacent(self, position, diag=False):
+        row, col = position
+        if not diag:
+            adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
+            adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
+            return adj_rows + adj_cols
+        elif diag:
+            out = []
+            for r, c in product(range(-1, 2), repeat=2):
+                if 0 not in (r, c):
+                    if all(0 <= index < self.size for index in (row + r, col + c)):
+                        out += [(row + r, col + c)]
+            adj_rows = [(row + adj, col) for adj in (-2, 2) if 0 <= row + adj < self.size]
+            adj_cols = [(row, col + adj) for adj in (-2, 2) if 0 <= col + adj < self.size]
+            out += adj_rows + adj_cols
+            return out
+
+
+    def cornered(self, specific=False):
+        """
+        States whether there is at least one cornered spot or not.
+        Takes optional parameter of a position.
+        Says if the areas AROUND that position are cornered or not (exluding position). (based on behaviour of find_adjacent)
+        It is important this check is done just after placing to ensure any corners are caught.
+        Without optional param, scans all empty spots in Level
+        :param position: tup(int, int)
+        :return: bool
+        """
+        if type(specific) == tuple:
+            # raise Exception('specific..?')
+            #print('specific')
+            #ends = [spot for spot in self.find_adjacent(specific, diag=True) if spot in self.empties()]
+            ends = [specific]
+        else:
+            # print('inspecific')
+            ends = [flow.path[-1] for flow in self if not flow.complete()]
+            #print('ends', ends)
+        for end in ends:  # for each end
+            for position in self.find_adjacent(end, diag=True):  # for each 'danger square'
+                #print(end, 'pos', position)
+                if position in self.empties():
+                    safe_spaces = 0  # count safe spaces
+                    for space in self.find_adjacent(position, diag=False):  # for each space next to danger square
+                        #print('end', end, 'pos', position, 'space', space)
+                        if space in self.ends() or space in self.empties():  # if safe
+                            safe_spaces += 1  # if record so
+                            #print(safe_spaces)
+                            if safe_spaces > 1:
+                                break
+                    else:
+                        print('c true', 'end', end, 'pos', position, 'space', space)
+                        print(self)
+                        return True
         return False
 
     def impossibilities(self):
         yield self.blocked()
         yield self.seperated_flows()
         yield self.dammed()
-        if len(self.empties()) * 2 < len(self.filled()):
-            print('checking cornered')
+        # if len(self.empties()) * 2 < len(self.filled()):
+        # print('checking cornered')
         yield self.cornered()
 
 
@@ -335,7 +363,7 @@ def make_move(branch, options, flow, move):
 
 
 def solve(level):
-    print(level, '\n')
+    # print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()

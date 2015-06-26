@@ -31,7 +31,7 @@ for n, level in l:
     print(n)
     print(level)
     # print(len(level.ends()) == len(level), level.size ** 2 == len(level.filled()) + len(level.empties()))
-    if not any([level.blocked(), level.dammed(), level.seperated_flows(), level.cornered(), True]):
+    if False: # not any([level.blocked(), level.dammed(), level.seperated_flows(), level.cornered(), True]):
         print('OK')
     else:
         tests = [['Dammed areas', level.dammed()],
@@ -49,3 +49,7 @@ for n, level in l:
     print()
 
 
+
+print(level)
+print()
+print(level[0])
