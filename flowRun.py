@@ -32,7 +32,7 @@ def test(array, size=0):
     print('\n*****Testing.    size: {}'.format(seed.size))
     #print(seed, '\n')
     #input('Continue')
-    solution = solve(deepcopy(seed))
+    solution = solve(deepcopy(seed), 0)
     loops = 'N/A'
     outparams = (round(time.time() - then, 3), loops)
     outtext = '{} found in: {}, Loops: {}'
@@ -44,14 +44,15 @@ def test(array, size=0):
     else:
         print(outtext.format('Unsolvable!', *outparams))
         print(seed)
+        #input('fail')
     #input('Continue')
 
 
 if __name__ == "__main__":
-    levels = [l31,
+    levels = [#l31,
               # # l42,  # Bug on this one because flows are 'finished' before map is full
-              l43,
-              l44,
+              #l43]
+              # l44,#,
               l51,
               l61,
               l62,

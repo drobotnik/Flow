@@ -173,12 +173,12 @@ class Level(object):
         :return:
         """
         options = list(self.make_options())
-        print('1', options)
         options.sort(key=lambda x: len(x[1]))
-        print('2', options)
-        for option in options:
-            option.sort(key=self.score_option)
-            for move in option:
+        for flow, moves in options:
+           #print(flow.colour, moves)
+            #option.sort(key=self.score_option)
+            for move in moves:
+                #print(flow.colour, move, moves)
                 yield [flow, move]  # Unpack options
             break
 
@@ -240,7 +240,7 @@ class Level(object):
         return any(f.blocked(self) for f in self.flow_list)
         # blocked if it is empty and has 0 empties and 0 flow ends
 
-    def seperated_flows(self):
+    def separated_flows(self):
         """
         Return True if not all Flow ends are in the same 'area' ie possible to be connected
         :return: bool
@@ -260,7 +260,7 @@ class Level(object):
         """
         Returns True if any areas are isolated ie have no (incomplete) Flow ends in them
         Gets all areas to see if they have at least one flow end in it
-        If any dont have a Flow end then it returns True
+        If any don't have a Flow end then it returns True
         usage: if not Level.dammed(): continue
         :return: bool
         """
@@ -300,22 +300,22 @@ class Level(object):
         :return: bool
         """
         if type(specific) == tuple:
-            #ends = [specific]
+            # ends = [specific]
             raise Exception('Im assuming this section is only for testing')
         else:
             # print('inspecific')
             ends = (flow.path[-1] for flow in self if not flow.complete())
-            #print('ends', ends)
+            # print('ends', ends)
         for end in ends:  # for each end
             for r, c in self.find_adjacent(end, diag=True):  # for each 'danger square'
-                #print(end, 'pos', position)
+                # print(end, 'pos', position)
                 if not self.make_array()[r][c]:
                     safe_spaces = 0  # count safe spaces
                     for ar, ac in self.find_adjacent((r, c), diag=False):  # for each space next to danger square
-                        #print('end', end, 'pos', position, 'space', space)
+                        # print('end', end, 'pos', position, 'space', space)
                         if self.make_array()[ar][ac] in ascii_lowercase or not self.make_array()[ar][ac]:  # if safe
                             safe_spaces += 1  # if record so
-                            #print(safe_spaces)
+                            # print(safe_spaces)
                             if safe_spaces > 1:
                                 break
                     else:
@@ -326,26 +326,18 @@ class Level(object):
 
     def impossibilities(self):
         yield self.blocked()
-        yield self.seperated_flows()
+        yield self.separated_flows()
         yield self.dammed()
         yield self.cornered()
-
-
 
 
 def distance(pos_one, pos_two):
     return sum(abs(i - j) for i, j in zip(pos_one, pos_two))
 
 
-def make_move(branch, options, flow, move):
-    if branch > 0:
-        last_move = options[branch - 1][0]
-        last_move.path.pop()
-    flow.add_dot(move)
-
-
-def solve(level):
-    # print(level, '\n')
+def solve(level, recursion):
+    #print(recursion)
+    #print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
@@ -356,10 +348,6 @@ def solve(level):
                 last.path.pop()
             last = flow
             flow.add_dot(move)
-            possible = solve(deepcopy(level))
+            possible = solve(deepcopy(level), recursion + 1)
             if type(possible) == list:
                 return possible
-
-
-
-
