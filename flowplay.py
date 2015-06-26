@@ -1,11 +1,15 @@
-def gentest():
-    options = [['a', (0, 0, 5)], ['b', (0, 0)], ['c', (1, 0)], ['d',(0, 0)]]
-    for flow, option in options:
-        print(flow)
-        for thing in option:
-            yield thing
-        break
 
+a = [4, 4, 3]
+b = [10, 2]
+c = [4, 5, 1]
 
-for _ in gentest():
-    print(_)
+d = [a, b, c]
+
+print(d)
+
+for flow in d:
+    flow.sort()
+
+d.sort(key=lambda x: len(x))
+
+print(d)

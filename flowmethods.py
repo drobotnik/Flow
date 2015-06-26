@@ -173,9 +173,12 @@ class Level(object):
         :return:
         """
         options = list(self.make_options())
-        options = sorted(options, key=lambda x: len(x[1]))
-        for flow, option in options:
-            for move in sorted(option, key=self.score_option):
+        print('1', options)
+        options.sort(key=lambda x: len(x[1]))
+        print('2', options)
+        for option in options:
+            option.sort(key=self.score_option)
+            for move in option:
                 yield [flow, move]  # Unpack options
             break
 
@@ -316,9 +319,8 @@ class Level(object):
                             if safe_spaces > 1:
                                 break
                     else:
-                        print('cornered', 'end', end, 'pos', (r, c))
-                        print(self)
-                        print(_)
+                        # print('cornered', 'end', end, 'pos', (r, c))
+                        # print(self)
                         return True
         return False
 
@@ -343,13 +345,17 @@ def make_move(branch, options, flow, move):
 
 
 def solve(level):
-    print(level, '\n')
+    # print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
     elif options:
-        for n, [flow, move] in enumerate(options):
-            make_move(n, options, flow, move)
+        last = 0
+        for flow, move in options:
+            if last:
+                last.path.pop()
+            last = flow
+            flow.add_dot(move)
             possible = solve(deepcopy(level))
             if type(possible) == list:
                 return possible
