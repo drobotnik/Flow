@@ -31,17 +31,17 @@ for n, level in l:
     print(n)
     print(level)
     # print(len(level.ends()) == len(level), level.size ** 2 == len(level.filled()) + len(level.empties()))
-    if not any([level.blocked(), level.dammed(), level.seperated_flows(), level.cornered()]):
+    if not any([level.blocked(), level.dammed(), level.seperated_flows(), level.cornered(), True]):
         print('OK')
     else:
         tests = [['Dammed areas', level.dammed()],
                  ['Flows seperated', level.seperated_flows()],
                  ['Blocked flows', level.blocked()],
-                 ['Cornered', level.cornered()]]
-#                 ['Types', level.adjacent_types((0, 0))]]
+                 ['Cornered', level.cornered()],
+                 ['Types', level.find_adjacent((2, 2), diag=True)]]
         for name, test in tests:
             if test:
-                print(name)  # , test)
+                print(name, test)
     # area_finder = level.area_finder()
     # print('Number of areas: {}'.format(len(area_finder)))
     # for na, area in enumerate(area_finder):

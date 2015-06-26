@@ -1,19 +1,14 @@
-def test():
-    a = [0, 0, 1, 0]
-    b = [1, 1]
-    c = [0, 1, 1]
-    d = [0, 0, 0, 1]
+from itertools import product
+a = [[0, 1, 2],
+     [3, 4, 5],
+     [6, 7, 8]]
 
-    for i in [a, b, c, d]:
-        safe = 0
-        for n in i:
-            if n:
-                safe += 1
-                if safe > 1:
-                    break
-        else:
-            print(i)
-            return True
-    return False
+def adj(self, pos):
+    row, col = pos
+    out = []
+    for r, c in product(range(-1, 2), repeat=2):
+        if all(0<= index < len(self) for index in (row + r, col + c)):
+            out += [(row + r, col + c)]
+    return out
 
-print(test())
+print(adj(a, (0, 0)))

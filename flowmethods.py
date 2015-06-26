@@ -123,7 +123,7 @@ class Level(object):
             yield flow
 
     def __len__(self):
-        return len(self.flow_list)
+        return self.size
 
     def filled(self):
         return list(chain(*(flow.path for flow in self.flow_list)))
@@ -147,12 +147,19 @@ class Level(object):
                     out[row][col] = flow.colour
         return out
 
-    def find_adjacent(self, position):
+    def find_adjacent(self, position, diag=False):
         row, col = position
-        adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
-        adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
-        # print('find adj', position, adj_rows, adj_cols)
-        return adj_rows + adj_cols
+        if not diag:
+            adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
+            adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
+            return adj_rows + adj_cols
+        elif diag:
+            out = []
+            for r, c in product(range(-1, 2), repeat=2):
+                if (r, c) != (0, 0):
+                    if all(0<= index < self.size for index in (row + r, col + c)):
+                        out += [(row + r, col + c)]
+            return out
 
     def adjacent_types(self, position):
         empties, tube, ends = [], [], []
@@ -277,7 +284,7 @@ class Level(object):
                     if (flow.path[-1] in area) and (flow.pair.path[-1] in area):
                         connected_flows += 1
                         break
-        return connected_flows != len(self)
+        return connected_flows != len(self.flow_list)
 
     def dammed(self):
         """
