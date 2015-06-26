@@ -297,20 +297,15 @@ class Level(object):
 
     def cornered(self):
         for empty in self.empties():
-            print(empty)
             safe_spaces = 0
-            while safe_spaces < 2:  # while unsafe
-                print('outer', safe_spaces)
-                for pos in self.find_adjacent(empty):  # go through adjacent squares
-                    print(pos, 'pos')
-                    if pos in self.ends() or pos in self.empties():
-                        safe_spaces += 1  # if safe, record so
-                        print('adding', safe_spaces)
-
-                print('uhoh')
-                return False  # if get through list and still unsafe, return True
-        return True  # if get through all
-
+            for pos in self.find_adjacent(empty):
+                if pos in self.ends() or pos in self.empties():
+                    safe_spaces += 1  # if safe, record so
+                    if safe_spaces > 1:
+                        break
+            else:
+                return True
+        return False
 
     def impossibilities(self):
         yield self.blocked()

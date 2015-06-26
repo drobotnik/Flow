@@ -1,33 +1,19 @@
-a = [1, 2, 3]
-b = [3, 4, 5]
+def test():
+    a = [0, 0, 1, 0]
+    b = [1, 1]
+    c = [0, 1, 1]
+    d = [0, 0, 0, 1]
 
-from itertools import product
-
-for x, y in product(a, b):
-    print(x, y)
-    if x == y:
-        break
-
-
-def a():
-    print('a')
+    for i in [a, b, c, d]:
+        safe = 0
+        for n in i:
+            if n:
+                safe += 1
+                if safe > 1:
+                    break
+        else:
+            print(i)
+            return True
     return False
 
-
-def b():
-    print('b')
-    return True
-
-
-def c():
-    print('c')
-    return False
-
-
-def tests():
-    yield a()
-    yield b()
-    yield c()
-
-if any(tests()):
-    print('one')
+print(test())
