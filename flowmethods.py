@@ -47,8 +47,7 @@ class Flow(object):
     def __init__(self, colour, path, pair=[]):
         self.colour = colour
         self.pair = pair
-        if type(
-                path) == tuple:  # These tests are to check if the flows are being created organically or for testing purposes
+        if type(path) == tuple:  # These tests are to check if the flows are being created organically or for testing purposes
             self.path = [path]
         elif type(path) == list:
             self.path = path
@@ -164,7 +163,8 @@ class Level(object):
         if any(self.impossibilities()):
             return []
         else:
-            flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
+            flow_options = ([f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self))
+            # flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
             return flow_options
 
     def rank_options(self):
@@ -174,15 +174,14 @@ class Level(object):
         :return:
         """
         options = self.make_options()
-        options = sorted(options, key=lambda x: len(x[1]))
-        for flow, option in options:
-            if len(option) == 1:
-                for move in option:
-                    return [[flow, move]]
+        # options = sorted(options, key=lambda x: len(x[1]))
         out = []
         for flow, option in options:
-            for move in option:
-                out += [[flow, move]]  # Unpack options
+            if len(option) == 1:
+                return [[flow, option[0]]]
+            else:
+                for move in option:
+                    out += [[flow, move]]  # Unpack options
         out = sorted(out, key=self.score_option)
         return out
 
@@ -308,7 +307,7 @@ class Level(object):
             raise Exception('Im assuming this section is only for testing')
         else:
             # print('inspecific')
-            ends = [flow.path[-1] for flow in self if not flow.complete()]
+            ends = (flow.path[-1] for flow in self if not flow.complete())
             #print('ends', ends)
         for end in ends:  # for each end
             for r, c in self.find_adjacent(end, diag=True):  # for each 'danger square'
@@ -323,7 +322,7 @@ class Level(object):
                             if safe_spaces > 1:
                                 break
                     else:
-                        print('c true', 'end', end, 'pos', (r, c))#, (ar, ac))
+                        print('cornered', 'end', end, 'pos', (r, c))
                         print(self)
                         return True
         return False
@@ -336,7 +335,7 @@ class Level(object):
 
 
 def distance(pos_one, pos_two):
-    return sum([abs(i - j) for i, j in zip(pos_one, pos_two)])
+    return sum(abs(i - j) for i, j in zip(pos_one, pos_two))
 
 
 def make_move(branch, options, flow, move):
