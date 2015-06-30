@@ -3,7 +3,6 @@ from flowlevels import *
 from testlevels import *
 from copy import deepcopy
 import time
-import cProfile
 
 
 loops = 0
@@ -23,15 +22,14 @@ def timer():
                                                                                 round((time.time() - clock) / 60, 2)))
 
 
-def test(array):
+def test(array, size=0):
     if len(array) == 2:
         array, size = array
     global loops
     then = time.time()
-    seed = Level(array)
-    print('\n*****Testing.    size: {}'.format(seed.size))
-    #print(seed, '\n')
-    #input('Continue')
+    seed = Level(array, size)
+    print('\n*****Testing.    size: {} Layout:'.format(seed.size))
+    print(seed, '\n')
     solution = solve(deepcopy(seed))
     loops = 'N/A'
     outparams = (round(time.time() - then, 3), loops)
@@ -44,29 +42,19 @@ def test(array):
     else:
         print(outtext.format('Unsolvable!', *outparams))
         print(seed)
-        #input('fail')
-    #input('Continue')
-
 
 if __name__ == "__main__":
-    levels = [#l31,
-              # l42,  # Bug on this one because flows are 'finished' before map is full
-              l43,
-              l44,#,
-              l51,
-              l61,
-              l62,
-              l71,
-              # # l72,  # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
-              l81,
-              l91,
-              l101,
-              l121,
-              l141]
-
-    for n, level in enumerate(levels):
-        test(level)
-    # cProfile.run("solve(Level(l31))")
-
-
+    test(l31)
+    #test(l42)  # Bug on this one because flows are 'finished' before map is full
+    test(l43)
+    test(l44)
+    test(l61)
+    test(l62)
+    test(l71)
+    #test(l72) # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
+    # test(l81)
+    # test(l91)
+    # test(l121)
+    # test(l101)
+    # test(l141)
 
