@@ -173,24 +173,12 @@ class Level(object):
         :return:
         """
         options = list(self.make_options())
-        print('start')
-        print(options)
-        for flow in options:
-            print(flow[1])
-            if len(flow[1]) > 1:
-                flow[1].sort(key=self.score_option)
-                #option.sort(key=self.score_option)
-        print(options)
-        #options.sort()
-        print(options)
-        #options.sort(key=lambda x: len(x[1]))
-        print(options)
-        print('end')
         for flow, moves in options:
-           #print(flow.colour, moves)
-            #option.sort(key=self.score_option)
+            moves.sort(key=lambda x: self.score_option((flow, x)))  # ranks options within flow
+        options.sort(key=lambda x: self.score_option((x[0], x[1][0])))
+        options.sort(key=lambda x: len(x[1]))
+        for flow, moves in options:
             for move in moves:
-                #print(flow.colour, move, moves)
                 yield [flow, move]  # Unpack options
             break
 
@@ -312,8 +300,8 @@ class Level(object):
                             if safe_spaces > 1:
                                 break
                     else:
-                        # print('\ncornered', 'end', end, 'pos', (r, c))
-                        # print(self)
+                        print('\ncornered', 'end', end, 'pos', (r, c))
+                        print(self)
                         return True
         return False
 
@@ -329,7 +317,7 @@ def distance(pos_one, pos_two):
 
 
 def solve(level):
-    print(level, '\n')
+    #print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
