@@ -150,9 +150,9 @@ class Level(object):
         return empties, tube, ends
 
     def complete(self):
-        map_full = all(all(row) for row in self.make_array())
+        #map_full = all(all(row) for row in self.make_array())
         flows_done = all(f.complete() for f in self.flow_list)
-        return flows_done and map_full
+        return flows_done #and map_full
 
     def make_options(self):
         """Only enters if no nodes are blocked and none have 1 option only.
@@ -272,22 +272,11 @@ class Level(object):
                     break
         return total != len(self.area_finder())
 
-    def find_adjacent(self, position, diag=False):
+    def find_adjacent(self, position):
         row, col = position
-        if not diag:
-            adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
-            adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
-            return adj_rows + adj_cols
-        elif diag:
-            out = []
-            for r, c in product(range(-1, 2), repeat=2):
-                if 0 not in (r, c):
-                    if all(0 <= index < self.size for index in (row + r, col + c)):
-                        out += [(row + r, col + c)]
-            adj_rows = [(row + adj, col) for adj in (-2, 2) if 0 <= row + adj < self.size]
-            adj_cols = [(row, col + adj) for adj in (-2, 2) if 0 <= col + adj < self.size]
-            out += adj_rows + adj_cols
-            return out
+        adj_rows = [(row + adj, col) for adj in (-1, 1) if 0 <= row + adj < self.size]
+        adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
+        return adj_rows + adj_cols
 
     def cornered(self, specific=False):
         """
@@ -299,19 +288,14 @@ class Level(object):
         :param position: tup(int, int)
         :return: bool
         """
-        if type(specific) == tuple:
-            # ends = [specific]
-            raise Exception('Im assuming this section is only for testing')
-        else:
-            # print('inspecific')
-            ends = (flow.path[-1] for flow in self if not flow.complete())
-            # print('ends', ends)
+        ends = (flow.path[-2] for flow in self if (not flow.complete() and len(flow) > 1))  # given a flow that has just moved, look at the previous position (This is the only place that can be cornered)
+        # print('ends', ends)
         for end in ends:  # for each end
-            for r, c in self.find_adjacent(end, diag=True):  # for each 'danger square'
+            for r, c in self.find_adjacent(end):  # for each 'danger square'
                 # print(end, 'pos', position)
                 if not self.make_array()[r][c]:
                     safe_spaces = 0  # count safe spaces
-                    for ar, ac in self.find_adjacent((r, c), diag=False):  # for each space next to danger square
+                    for ar, ac in self.find_adjacent((r, c)):  # for each space next to danger square
                         # print('end', end, 'pos', position, 'space', space)
                         if self.make_array()[ar][ac] in ascii_lowercase or not self.make_array()[ar][ac]:  # if safe
                             safe_spaces += 1  # if record so
@@ -319,8 +303,8 @@ class Level(object):
                             if safe_spaces > 1:
                                 break
                     else:
-                        # print('cornered', 'end', end, 'pos', (r, c))
-                        # print(self)
+                        print('cornered', 'end', end, 'pos', (r, c))
+                        print(self)
                         return True
         return False
 
@@ -335,8 +319,7 @@ def distance(pos_one, pos_two):
     return sum(abs(i - j) for i, j in zip(pos_one, pos_two))
 
 
-def solve(level, recursion):
-    #print(recursion)
+def solve(level):
     #print(level, '\n')
     options = level.rank_options()
     if level.complete():
@@ -348,6 +331,6 @@ def solve(level, recursion):
                 last.path.pop()
             last = flow
             flow.add_dot(move)
-            possible = solve(deepcopy(level), recursion + 1)
+            possible = solve(deepcopy(level))
             if type(possible) == list:
                 return possible

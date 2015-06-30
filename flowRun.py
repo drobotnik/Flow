@@ -50,9 +50,9 @@ def test(array, size=0):
 
 if __name__ == "__main__":
     levels = [#l31,
-              # # l42,  # Bug on this one because flows are 'finished' before map is full
-              #l43]
-              # l44,#,
+              # l42,  # Bug on this one because flows are 'finished' before map is full
+              l43,
+              l44,#,
               l51,
               l61,
               l62,
