@@ -152,7 +152,7 @@ class Level(object):
     def complete(self):
         #map_full = all(all(row) for row in self.make_array())
         flows_done = all(f.complete() for f in self.flow_list)
-        return flows_done #and map_full
+        return flows_done  # and map_full
 
     def make_options(self):
         """Only enters if no nodes are blocked and none have 1 option only.
@@ -173,7 +173,19 @@ class Level(object):
         :return:
         """
         options = list(self.make_options())
-        options.sort(key=lambda x: len(x[1]))
+        print('start')
+        print(options)
+        for flow in options:
+            print(flow[1])
+            if len(flow[1]) > 1:
+                flow[1].sort(key=self.score_option)
+                #option.sort(key=self.score_option)
+        print(options)
+        #options.sort()
+        print(options)
+        #options.sort(key=lambda x: len(x[1]))
+        print(options)
+        print('end')
         for flow, moves in options:
            #print(flow.colour, moves)
             #option.sort(key=self.score_option)
@@ -288,23 +300,20 @@ class Level(object):
         :param position: tup(int, int)
         :return: bool
         """
-        ends = (flow.path[-2] for flow in self if (not flow.complete() and len(flow) > 1))  # given a flow that has just moved, look at the previous position (This is the only place that can be cornered)
-        # print('ends', ends)
+        if not specific:
+            ends = (flow.path[-2] for flow in self if (not flow.complete() and len(flow) > 1))  # given a flow that has just moved, look at the previous position (This is the only place that can be cornered)
         for end in ends:  # for each end
             for r, c in self.find_adjacent(end):  # for each 'danger square'
-                # print(end, 'pos', position)
                 if not self.make_array()[r][c]:
                     safe_spaces = 0  # count safe spaces
                     for ar, ac in self.find_adjacent((r, c)):  # for each space next to danger square
-                        # print('end', end, 'pos', position, 'space', space)
                         if self.make_array()[ar][ac] in ascii_lowercase or not self.make_array()[ar][ac]:  # if safe
                             safe_spaces += 1  # if record so
-                            # print(safe_spaces)
                             if safe_spaces > 1:
                                 break
                     else:
-                        print('cornered', 'end', end, 'pos', (r, c))
-                        print(self)
+                        # print('\ncornered', 'end', end, 'pos', (r, c))
+                        # print(self)
                         return True
         return False
 
@@ -320,7 +329,7 @@ def distance(pos_one, pos_two):
 
 
 def solve(level):
-    #print(level, '\n')
+    print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()

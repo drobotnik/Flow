@@ -23,16 +23,16 @@ def timer():
                                                                                 round((time.time() - clock) / 60, 2)))
 
 
-def test(array, size=0):
+def test(array):
     if len(array) == 2:
         array, size = array
     global loops
     then = time.time()
-    seed = Level(array, size)
+    seed = Level(array)
     print('\n*****Testing.    size: {}'.format(seed.size))
     #print(seed, '\n')
     #input('Continue')
-    solution = solve(deepcopy(seed), 0)
+    solution = solve(deepcopy(seed))
     loops = 'N/A'
     outparams = (round(time.time() - then, 3), loops)
     outtext = '{} found in: {}, Loops: {}'
