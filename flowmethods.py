@@ -175,8 +175,8 @@ class Level(object):
         options = list(self.make_options())
         for flow, moves in options:
             moves.sort(key=lambda x: self.score_option((flow, x)))  # ranks options within flow
-        options.sort(key=lambda x: self.score_option((x[0], x[1][0])))
-        options.sort(key=lambda x: len(x[1]))
+        options.sort(key=lambda x: self.score_option((x[0], x[1][0])))  # ranks flows by best option
+        options.sort(key=lambda x: len(x[1]))  # ranks flows by number of options  ** note can use this to speed up above. if any flows have one option, return that one, if any have 2 return those 2 only. then no need to sort them all multiple times
         for flow, moves in options:
             for move in moves:
                 yield [flow, move]  # Unpack options
@@ -300,15 +300,30 @@ class Level(object):
                             if safe_spaces > 1:
                                 break
                     else:
-                        print('\ncornered', 'end', end, 'pos', (r, c))
-                        print(self)
+                        #print('\ncornered', 'end', end, 'pos', (r, c))
+                        #print(self)
                         return True
+        return False
+
+    def folded(self):
+        """
+        Checks to see if any flows are folded over themselves
+        :return: bool
+        """
+        level = self.make_array()
+        for i in range(len(level) - 1):
+            for j in range(len(level) - 1):
+                if level[i][j] and level[i][j] == level[i][j + 1]:
+                    if level[i][j] == level[i + 1][j]:
+                        if level[i][j] == level[i + 1][j + 1]:
+                            return True
         return False
 
     def impossibilities(self):
         yield self.blocked()
         yield self.separated_flows()
         yield self.dammed()
+        yield self.folded()
         yield self.cornered()
 
 
@@ -317,7 +332,7 @@ def distance(pos_one, pos_two):
 
 
 def solve(level):
-    #print(level, '\n')
+    print(level, '\n')
     options = level.rank_options()
     if level.complete():
         return level.make_array()
