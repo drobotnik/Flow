@@ -1,7 +1,9 @@
 a = (3, 3, 3)
-b = (1, 3)
+b = (1, 3, 4, 5, 4, 4, 5, 6)
 
-from itertools import product
+c = set()
+print(b)
+for n in b:
+    c.add(n)
 
-for c, r in product(range(2), repeat=2):
-    print(c, r)
+print(c)

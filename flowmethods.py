@@ -162,10 +162,32 @@ class Level(object):
         """
         if any(self.impossibilities()):
             return []
-        else:
-            flow_options = ([f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self))
-            # flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
-            return flow_options
+        flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
+        cornered = []
+        moves = set()
+        for flow, option in flow_options:
+            if len(option) == 1:
+                return [[flow, option]]
+        for flow, option in flow_options:
+            for move in option:
+                if self.cornering(move):
+                    moves.add(move)
+                    #print('corner', [flow.colour, [move]])
+                    cornered += [[flow, [move]]]
+        if cornered:
+            print('cornered')
+            moves = list(moves)
+            rejigged = []
+            for move in moves:
+                helper = [move, []]
+                for flow, option in cornered:
+                    if option[0] ==  move:
+                        helper[1] += [flow]
+                rejigged += [helper]
+            return rejigged
+
+        # flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
+        return flow_options
 
     def rank_options(self):
         """
@@ -173,16 +195,30 @@ class Level(object):
         Important to return ALL options unless
         :yield: option
         """
-        options = list(self.make_options())
-        for flow, moves in options:
-            moves.sort(key=lambda x: self.score_option((flow, x)))  # ranks options within flow
-        options.sort(key=lambda x: self.score_option((x[0], x[1][0])))  # ranks flows by best option
-        options.sort(key=lambda x: len(x[0]))  # ranks options by length of flow
-        options.sort(key=lambda x: len(x[1]))  # ranks flows by number of options  ** note could use this to speed up above. if any flows have one option, return that one, if any have 2 return those 2 only. then no need to sort them all multiple times
-        for flow, moves in options:
-            for move in moves:
-                yield [flow, move]  # Unpack options
-            break
+        options = self.make_options()
+        print('ops:')
+        print(options)
+
+        if type(options[0][0]) == tuple:
+            print('rejigged...')
+            for move, flows in options:
+                print(move, [flow.colour for flow in flows])
+                for flow in flows:
+                    yield [flow, move]
+                break
+        elif type(options[0][1][0]) == tuple:
+            print('original')
+            if len(options) > 1:
+                for flow, moves in options:
+                    moves.sort(key=lambda x: self.score_option((flow, x)))  # ranks options within flow
+                options.sort(key=lambda x: self.score_option((x[0], x[1][0])))  # ranks flows by best option
+                options.sort(key=lambda x: len(x[0]))  # ranks options by length of flow
+                options.sort(key=lambda x: len(x[1]))  # ranks flows by number of options  ** note could use this to speed up above. if any flows have one option, return that one, if any have 2 return those 2 only. then no need to sort them all multiple times
+            else:
+                for flow, moves in options:
+                    for move in moves:
+                        yield [flow, move]  # Unpack options
+                    break
 
     def score_option(self, flow_option):
         """
@@ -280,6 +316,21 @@ class Level(object):
         adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
         return adj_rows + adj_cols
 
+    def cornering(self, end):
+        safe_spaces = 0  # count safe spaces
+        for ar, ac in self.find_adjacent(end):  # for each space next to danger square
+            if not self.make_array()[ar][ac]:  # if empty..
+                safe_spaces += 1  # record so
+                if safe_spaces > 1:
+                    break
+        else:
+            # print('\ncornering', 'end', end)
+            # print(self)
+            # print('\n')
+            return True
+        return False
+
+
     def cornered(self, specific=False):
         """
         States whether there is at least one cornered spot or not.
@@ -290,6 +341,7 @@ class Level(object):
         :param position: tup(int, int)
         :return: bool
         """
+        input('wtf')
         # Need to improve this to include completed flows in blocking as well as check it wont fold on itself
         if not specific:
             ends = (flow.path[-2] for flow in self if (not flow.complete() and len(flow) > 1))  # given a flow that has just moved, look at the previous position (This is the only place that can be cornered)
@@ -329,7 +381,7 @@ class Level(object):
         yield self.separated_flows()
         yield self.dammed()
         yield self.folded()
-        yield self.cornered()
+        #yield self.cornered()
 
 
 def distance(pos_one, pos_two):
