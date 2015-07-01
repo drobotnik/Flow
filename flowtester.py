@@ -31,7 +31,7 @@ for n, level in l:
     print(n)
     print(level)
     # print(len(level.ends()) == len(level), level.size ** 2 == len(level.filled()) + len(level.empties()))
-    if False: # not any([level.blocked(), level.dammed(), level.separated_flows(), level.cornered(), True]):
+    if False:  # not any([level.blocked(), level.dammed(), level.separated_flows(), level.cornered(), True]):
         print('OK')
     else:
         tests = [['Dammed areas', level.dammed()],
@@ -40,8 +40,7 @@ for n, level in l:
                  ['Cornered', level.cornered()],
                  ['Folded', level.folded()]]
         for name, test in tests:
-            if name == 'Folded':
-            #if test:
+            if test:
                 print(name, test)
     # area_finder = level.area_finder()
     # print('Number of areas: {}'.format(len(area_finder)))

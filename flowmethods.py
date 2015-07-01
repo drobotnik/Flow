@@ -129,21 +129,21 @@ class Level(object):
         out = [['' for _ in range(self.size)] for _ in range(self.size)]
         for flow in self.flow_list:
             for row, col in flow.path:
-                if (row, col) == flow.path[-1]:
-                    out[row][col] = chr(ord(flow.colour) + 32)
-                else:
+                if (row, col) != flow.path[-1]:
                     out[row][col] = flow.colour
+                else:
+                    out[row][col] = chr(ord(flow.colour) + 32)
         return out
 
     def adjacent_types(self, position):
         empties, tube, ends = [], [], []
         for r, c in self.find_adjacent(position):
-            if self.make_array()[r][c] in ascii_lowercase:
-                ends += [(r, c)]
-            elif not self.make_array()[r][c]:
+            if not self.make_array()[r][c]:
                 empties += [(r, c)]
             elif self.make_array()[r][c] in ascii_uppercase:
                 tube += [(r, c)]
+            elif self.make_array()[r][c] in ascii_lowercase:
+                ends += [(r, c)]
             else:
                 raise Exception("position{} pos{} adj{} emp{} "
                                 "tub{} end{}".format(position, (r, c), self.find_adjacent(position), empties, tube, ends))
@@ -158,6 +158,7 @@ class Level(object):
         """Only enters if no nodes are blocked and none have 1 option only.
         ie - multiple Flows have multiple options
         #need to remember to return all options if introducing preemptive moves
+        :return: [[Flow, [option1, option2],...]
         """
         if any(self.impossibilities()):
             return []
@@ -170,13 +171,14 @@ class Level(object):
         """
         Takes make_options to give False, 1 or more options.
         Important to return ALL options unless
-        :return:
+        :yield: option
         """
         options = list(self.make_options())
         for flow, moves in options:
             moves.sort(key=lambda x: self.score_option((flow, x)))  # ranks options within flow
         options.sort(key=lambda x: self.score_option((x[0], x[1][0])))  # ranks flows by best option
-        options.sort(key=lambda x: len(x[1]))  # ranks flows by number of options  ** note can use this to speed up above. if any flows have one option, return that one, if any have 2 return those 2 only. then no need to sort them all multiple times
+        options.sort(key=lambda x: len(x[0]))  # ranks options by length of flow
+        options.sort(key=lambda x: len(x[1]))  # ranks flows by number of options  ** note could use this to speed up above. if any flows have one option, return that one, if any have 2 return those 2 only. then no need to sort them all multiple times
         for flow, moves in options:
             for move in moves:
                 yield [flow, move]  # Unpack options
@@ -185,7 +187,7 @@ class Level(object):
     def score_option(self, flow_option):
         """
         Takes as input a possible move and returns a score for how favourable it is
-        0 is best
+        0 < score
         :param flow_option: [<flow>, (tup)]
         :return: float
         """
@@ -288,6 +290,7 @@ class Level(object):
         :param position: tup(int, int)
         :return: bool
         """
+        # Need to improve this to include completed flows in blocking as well as check it wont fold on itself
         if not specific:
             ends = (flow.path[-2] for flow in self if (not flow.complete() and len(flow) > 1))  # given a flow that has just moved, look at the previous position (This is the only place that can be cornered)
         for end in ends:  # for each end
@@ -295,7 +298,7 @@ class Level(object):
                 if not self.make_array()[r][c]:
                     safe_spaces = 0  # count safe spaces
                     for ar, ac in self.find_adjacent((r, c)):  # for each space next to danger square
-                        if self.make_array()[ar][ac] in ascii_lowercase or not self.make_array()[ar][ac]:  # if safe
+                        if not self.make_array()[ar][ac] or self.make_array()[ar][ac] in ascii_lowercase:  # if safe
                             safe_spaces += 1  # if record so
                             if safe_spaces > 1:
                                 break
@@ -313,10 +316,12 @@ class Level(object):
         level = self.make_array()
         for i in range(len(level) - 1):
             for j in range(len(level) - 1):
-                if level[i][j] and level[i][j] == level[i][j + 1]:
-                    if level[i][j] == level[i + 1][j]:
-                        if level[i][j] == level[i + 1][j + 1]:
-                            return True
+                if level[i][j]:
+                    colour = (level[i][j].upper(), level[i][j].lower())
+                    if level[i + 1][j + 1] in colour:  # start with least likely
+                        if level[i][j + 1] in colour:
+                            if level[i + 1][j] in colour:
+                                return True
         return False
 
     def impossibilities(self):
