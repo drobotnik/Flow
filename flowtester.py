@@ -15,7 +15,7 @@ two_flows_blank = [[[], []],
 
 one_flow_blank = [[[], []]]
 
-l = [[n, Level(x)] for n, x in enumerate([t1l31, t1l32, t1l33, t1l34, t1l35,  # 32 and 33 should be false (0, 2) is blocked
+l = [[n, Level(x)] for n, x in enumerate([t1l31, t1l32, t1l33, t1l34,  # 32 and 33 should be false (0, 2) is blocked
                                           t2l31,
                                           t2l41, t2l42, t2l43, t2l44,
                                           t2l51, t2l52, t2l53, t2l54])]
@@ -31,14 +31,14 @@ for n, level in l:
     print(n)
     print(level)
     # print(len(level.ends()) == len(level), level.size ** 2 == len(level.filled()) + len(level.empties()))
-    if False:  # not any([level.blocked(), level.dammed(), level.separated_flows(), level.cornered_depr(), True]):
+    if False: # not any([level.blocked(), level.dammed(), level.separated_flows(), level.cornered(), True]):
         print('OK')
     else:
         tests = [['Dammed areas', level.dammed()],
                  ['Flows seperated', level.separated_flows()],
                  ['Blocked flows', level.blocked()],
-                 ['Cornered', level.cornered((1, 2))],
-                 ['Folded', level.folded()]]
+                 ['Cornered', level.cornered()],
+                 ['Types', level.find_adjacent((2, 2), diag=True)]]
         for name, test in tests:
             if test:
                 print(name, test)
@@ -48,3 +48,10 @@ for n, level in l:
     # print("Area {}: {}".format(na, area))
     print()
 
+
+
+print(level)
+print('x')
+print(level.make_array())
+print(level.make_array()[0][3])
+print(';')
