@@ -23,16 +23,16 @@ def timer():
                                                                                 round((time.time() - clock) / 60, 2)))
 
 
-def test(array, size=0):
+def test(array):
     if len(array) == 2:
         array, size = array
     global loops
     then = time.time()
-    seed = Level(array, size)
+    seed = Level(array)
     print('\n*****Testing.    size: {}'.format(seed.size))
     #print(seed, '\n')
     #input('Continue')
-    solution = solve(deepcopy(seed), 0)
+    solution = solve(deepcopy(seed))
     loops = 'N/A'
     outparams = (round(time.time() - then, 3), loops)
     outtext = '{} found in: {}, Loops: {}'
@@ -49,20 +49,23 @@ def test(array, size=0):
 
 
 if __name__ == "__main__":
-    levels = [#l31,
+    levels = [
+              # l31,
               # l42,  # Bug on this one because flows are 'finished' before map is full
-              l43,
-              l44,#,
-              l51,
-              l61,
-              l62,
-              l71,
+              # l43,
+              # l44,#,
+              # l51,
+              # l61,
+              # l62,
+              # l71,
               # # l72,  # struggles with this one. Do i need to code in something for if all but one are done? and there are empty spaces?
-              l81,
-              l91,
-              l101,
-              l121,
-              l141]
+              l81
+              # l91,
+              # l101,
+              # l111,
+              # l121,
+    #          l141
+    ]
 
     for n, level in enumerate(levels):
         test(level)
