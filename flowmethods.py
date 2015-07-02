@@ -169,8 +169,13 @@ class Level(object):
         """
         if any(self.impossibilities()):
             return []
-        flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
-        return self.rejigger(flow_options)
+        flow_options = ([f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self))
+        out = []
+        for flow, option in flow_options:  # first check to filter out any corners
+            if len(option) == 1:  # returns any Flow with only one option
+                return [[flow, option]]
+            out += [[flow, option]]
+        return self.rejigger(out)
 
     def rejigger(self, flow_options):
         """
@@ -370,8 +375,8 @@ class Level(object):
     def impossibilities(self):
         yield self.blocked()
         yield self.folded()
-        yield self.separated_flows()
         yield self.dammed()
+        yield self.separated_flows()
 
 
 def distance(pos_one, pos_two):
