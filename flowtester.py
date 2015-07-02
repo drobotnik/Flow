@@ -31,8 +31,20 @@ for n, level in l:
     print(n)
     print(level)
     # print(len(level.ends()) == len(level), level.size ** 2 == len(level.filled()) + len(level.empties()))
-    if False:  # not any([level.blocked(), level.dammed(), level.separated_flows(), level.cornered_depr(), True]):
-        print('OK')
+    if True:  # not any([level.blocked(), level.dammed(), level.separated_flows(), level.cornered_depr(), True]):
+        x = level.make_options()
+        print(x)
+        if x:
+            print('x[0]', x[0][0])
+            print(type(x[0][0]))
+            if isinstance(x[0][0], tuple):
+                print('rejigged')
+            elif isinstance(x[0][0], Flow):
+                print('orignial')
+            else:
+                raise Exception(type(x[0][0]))
+
+
     else:
         tests = [['Dammed areas', level.dammed()],
                  ['Flows seperated', level.separated_flows()],
