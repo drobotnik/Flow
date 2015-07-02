@@ -155,27 +155,32 @@ class Level(object):
         return flows_done  # and map_full
 
     def make_options(self):
-        """Only enters if no nodes are blocked and none have 1 option only.
-        ie - multiple Flows have multiple options
-        #need to remember to return all options if introducing preemptive moves
+        """
+        1. First checks self.impossibilities() to see if Level is solvable or not.
+        2. Then makes flow_options which is all the empty spots next to all incomplete Flow ends
+        3. If any Flows have only one option, return that
+
+
         :return: [[Flow, [option1, option2],...]
         """
         if any(self.impossibilities()):
             return []
         flow_options = [[f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self)]
-        cornered = []
-        moves = set()
         for flow, option in flow_options:
             if len(option) == 1:
                 return [[flow, option]]
+
+        cornered = []
+        moves = set()
+
         for flow, option in flow_options:
             for move in option:
-                if self.cornering(move):
+                if self.cornered(move):
                     moves.add(move)
                     #print('corner', [flow.colour, [move]])
                     cornered += [[flow, [move]]]
         if cornered:
-            print('cornered')
+            print('cornered_depr')
             moves = list(moves)
             rejigged = []
             for move in moves:
@@ -316,48 +321,23 @@ class Level(object):
         adj_cols = [(row, col + adj) for adj in (-1, 1) if 0 <= col + adj < self.size]
         return adj_rows + adj_cols
 
-    def cornering(self, end):
+    def cornered(self, pos):
+        """
+        checks a position to see if it is cornered: defined as having only one empty space next to it
+        :param pos: tuple coordinate
+        :return: bool
+        """
+        if self.make_array()[pos[0]][pos[1]]:
+            #raise ValueError('Cornered check found spot {} to not be empty'.format(pos))
+            pass
         safe_spaces = 0  # count safe spaces
-        for ar, ac in self.find_adjacent(end):  # for each space next to danger square
+        for ar, ac in self.find_adjacent(pos):  # for each space next to pos
             if not self.make_array()[ar][ac]:  # if empty..
                 safe_spaces += 1  # record so
                 if safe_spaces > 1:
                     break
         else:
-            # print('\ncornering', 'end', end)
-            # print(self)
-            # print('\n')
             return True
-        return False
-
-
-    def cornered(self, specific=False):
-        """
-        States whether there is at least one cornered spot or not.
-        Takes optional parameter of a position.
-        Says if the areas AROUND that position are cornered or not (exluding position). (based on behaviour of find_adjacent)
-        It is important this check is done just after placing to ensure any corners are caught.
-        Without optional param, scans all empty spots in Level
-        :param position: tup(int, int)
-        :return: bool
-        """
-        input('wtf')
-        # Need to improve this to include completed flows in blocking as well as check it wont fold on itself
-        if not specific:
-            ends = (flow.path[-2] for flow in self if (not flow.complete() and len(flow) > 1))  # given a flow that has just moved, look at the previous position (This is the only place that can be cornered)
-        for end in ends:  # for each end
-            for r, c in self.find_adjacent(end):  # for each 'danger square'
-                if not self.make_array()[r][c]:
-                    safe_spaces = 0  # count safe spaces
-                    for ar, ac in self.find_adjacent((r, c)):  # for each space next to danger square
-                        if not self.make_array()[ar][ac] or self.make_array()[ar][ac] in ascii_lowercase:  # if safe
-                            safe_spaces += 1  # if record so
-                            if safe_spaces > 1:
-                                break
-                    else:
-                        #print('\ncornered', 'end', end, 'pos', (r, c))
-                        #print(self)
-                        return True
         return False
 
     def folded(self):
@@ -378,10 +358,10 @@ class Level(object):
 
     def impossibilities(self):
         yield self.blocked()
+        yield self.folded()
         yield self.separated_flows()
         yield self.dammed()
-        yield self.folded()
-        #yield self.cornered()
+
 
 
 def distance(pos_one, pos_two):

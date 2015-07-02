@@ -31,13 +31,13 @@ for n, level in l:
     print(n)
     print(level)
     # print(len(level.ends()) == len(level), level.size ** 2 == len(level.filled()) + len(level.empties()))
-    if False:  # not any([level.blocked(), level.dammed(), level.separated_flows(), level.cornered(), True]):
+    if False:  # not any([level.blocked(), level.dammed(), level.separated_flows(), level.cornered_depr(), True]):
         print('OK')
     else:
         tests = [['Dammed areas', level.dammed()],
                  ['Flows seperated', level.separated_flows()],
                  ['Blocked flows', level.blocked()],
-                 ['Cornered', level.cornered()],
+                 ['Cornered', level.cornered((1, 2))],
                  ['Folded', level.folded()]]
         for name, test in tests:
             if test:
