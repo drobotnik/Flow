@@ -91,6 +91,8 @@ class Flow(object):
         Does this by testing if flow is incomplete and has no options on one or both ends """
         # l3x2 should break immediately because f1 is blocked in (0, 0)
         blocked = not (self.find_empties(lvl) or self.complete())
+        if blocked:
+            print('blocked!!')
         return blocked
 
 
@@ -168,6 +170,8 @@ class Level(object):
         or       [[option1, [Flow1, Flow2],...]
         """
         if any(self.impossibilities()):
+            input('impossible*:\n{}\n\n'.format(self))
+
             return []
         flow_options = ([f, f.find_empties(self)] for f in self.flow_list if f.find_empties(self))
         out = []
@@ -264,14 +268,12 @@ class Level(object):
         # print('final score', round(score, 2), flow.colour, move)
         return score
 
-    def area_finder(self):
-        """
-        Returns the different areas
-        This is to make it easier to test if the ends are in the areas
-        :return: list of tuples
-        """
-        empties = list(
-            chain(*([(r, c)] for r, c in product(range(self.size), repeat=2) if not self.make_array()[r][c])))
+    def find_empties(self):
+        all_grid_options = product(range(self.size), repeat=2)
+        level = self.make_array()
+        return list((r, c) for r, c in all_grid_options if not level[r][c])
+
+    def area_separator(self, empties):
         areas = []
         while empties:
             area = [empties.pop()]
@@ -282,6 +284,9 @@ class Level(object):
                     except ValueError:
                         pass
             areas += [area]
+        return areas
+
+    def add_ends_to_areas(self, areas):
         ends = [flow.path[-1] for flow in self]
         for end in ends:
             for area in areas:
@@ -289,6 +294,17 @@ class Level(object):
                     if pos in area:
                         area += [end]
                         break
+        return areas
+
+    def area_finder(self):
+        """
+        Returns the different areas
+        This is to make it easier to test if the ends are in the areas
+        :return: list of tuples
+        """
+        empties = self.find_empties()
+        areas = self.area_separator(empties)
+        areas = self.add_ends_to_areas(areas)
         return areas
 
     def blocked(self):
@@ -313,11 +329,14 @@ class Level(object):
                     if (flow.path[-1] in area) and (flow.pair.path[-1] in area):
                         connected_flows += 1
                         break
-        return connected_flows != len(self.flow_list)
+        separated = connected_flows != len(self.flow_list)
+        if separated:
+            print('separated', connected_flows, len(self.flow_list))
+        return separated
 
     def dammed(self):
         """
-        Returns True if any areas are isolated ie have no (incomplete) Flow ends in them
+        Returns True if any areas are isolated ie have no (incomplete) Flow pair ends in them
         Gets all areas to see if they have at least one flow end in it
         If any don't have a Flow end then it returns True
         usage: if not Level.dammed(): continue
@@ -329,7 +348,10 @@ class Level(object):
                 if (flow.path[-1] in area) and (flow.pair.path[-1] in area) and not flow.complete():
                     total += 1
                     break
-        return total != len(self.area_finder())
+        dammed = total != len(self.area_finder())
+        if dammed:
+            print('dammed')
+        return dammed
 
     def find_adjacent(self, position):
         row, col = position
@@ -369,13 +391,14 @@ class Level(object):
                     if level[i + 1][j + 1] in colour:  # start with least likely
                         if level[i][j + 1] in colour:
                             if level[i + 1][j] in colour:
+                                print('folded')
                                 return True
         return False
 
     def impossibilities(self):
-        yield self.blocked()
-        yield self.folded()
-        yield self.dammed()
+        # yield self.blocked()
+        # yield self.folded()
+        # yield self.dammed()
         yield self.separated_flows()
 
 
